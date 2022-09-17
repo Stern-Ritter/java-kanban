@@ -1,11 +1,16 @@
 import service.TaskManager;
 import test.ApplicationTest;
+import utils.Managers;
 
 public class Main {
 
     public static void main(String[] args) {
-        TaskManager taskManager = new TaskManager();
         ApplicationTest applicationTest = new ApplicationTest();
-        applicationTest.basicTaskManagerTest(taskManager);
+
+        TaskManager firstTestTaskManager = Managers.getDefault();
+        applicationTest.basicTaskManagerTest(firstTestTaskManager);
+
+        TaskManager secondTestTaskManager = Managers.getDefault();
+        applicationTest.historyTaskManagerTest(secondTestTaskManager);
     }
 }

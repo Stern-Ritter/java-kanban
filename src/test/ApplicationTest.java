@@ -11,6 +11,10 @@ import java.util.Arrays;
 import java.util.List;
 
 public class ApplicationTest {
+    private void printBreakLine() {
+        System.out.println("-".repeat(12));
+    }
+
     public void basicTaskManagerTest(TaskManager taskManager) {
         Task firstTask = new Task("Сходить в магазин.", "Купить продукты.");
         Task secondTask = new Task("Убраться в квартире.", "Пропылесосить полы.");
@@ -73,5 +77,47 @@ public class ApplicationTest {
         subtasks = taskManager.getSubtasks();
         System.out.println(epics);
         System.out.println(subtasks);
+
+        printBreakLine();
+    }
+
+    public void historyTaskManagerTest(TaskManager taskManager) {
+        Task task = new Task("Сходить в магазин.", "Купить продукты.");
+        Epic epic = new Epic("Начать заниматься спортом.", "Пойти в спортзал.");
+        Subtask subtask = new Subtask("Выбрать место тренировок.", "Выбрать спортзал.", epic);
+
+        taskManager.addTask(task);
+        taskManager.addEpic(epic);
+        taskManager.addSubtask(subtask);
+
+        taskManager.getTaskById(task.getId());
+        System.out.println(taskManager.getHistory());
+        taskManager.getEpicById(epic.getId());
+        System.out.println(taskManager.getHistory());
+        taskManager.getSubtaskById(subtask.getId());
+        System.out.println(taskManager.getHistory());
+
+        taskManager.getTaskById(task.getId());
+        System.out.println(taskManager.getHistory());
+        taskManager.getEpicById(epic.getId());
+        System.out.println(taskManager.getHistory());
+        taskManager.getSubtaskById(subtask.getId());
+        System.out.println(taskManager.getHistory());
+
+        taskManager.getTaskById(task.getId());
+        System.out.println(taskManager.getHistory());
+        taskManager.getEpicById(epic.getId());
+        System.out.println(taskManager.getHistory());
+        taskManager.getSubtaskById(subtask.getId());
+        System.out.println(taskManager.getHistory());
+
+        taskManager.getTaskById(task.getId());
+        System.out.println(taskManager.getHistory());
+        taskManager.getEpicById(epic.getId());
+        System.out.println(taskManager.getHistory());
+        taskManager.getSubtaskById(subtask.getId());
+        System.out.println(taskManager.getHistory());
+
+        printBreakLine();
     }
 }
