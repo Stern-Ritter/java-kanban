@@ -1,28 +1,19 @@
 package model;
 
-import utils.Status;
-
 public class Subtask extends Task {
-    private Epic epic;
+    private int epicId;
 
-    public Subtask(String name, String description, Epic epic) {
+    public Subtask(String name, String description, int epicId) {
         super(name, description);
-        this.epic = epic;
+        this.epicId = epicId;
     }
 
-    public Task getEpic() {
-        return epic;
+    public int getEpicId() {
+        return epicId;
     }
 
-    public void setEpic(Epic epic) {
-        this.epic = epic;
-        this.epic.updateStatus();
-    }
-
-    @Override
-    public void setStatus(Status status) {
-        super.setStatus(status);
-        epic.updateStatus();
+    public void setEpic(int epicId) {
+        this.epicId = epicId;
     }
 
     @Override
@@ -32,7 +23,7 @@ public class Subtask extends Task {
                 ", name='" + getName() + '\'' +
                 ", description='" + getDescription() + '\'' +
                 ", status=" + getStatus() +
-                ", epic=" + this.epic.getId() +
+                ", epic=" + this.epicId +
                 '}';
     }
 }

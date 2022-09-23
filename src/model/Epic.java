@@ -39,6 +39,12 @@ public class Epic extends Task {
     }
 
     @Override
+    public Status getStatus() {
+        updateStatus();
+        return super.getStatus();
+    }
+
+    @Override
     public void setStatus(Status status) {
         updateStatus();
     }

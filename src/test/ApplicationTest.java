@@ -23,18 +23,18 @@ public class ApplicationTest {
         Subtask firstEpicFirstSubtask = new Subtask(
                 "Выбрать место тренировок.",
                 "Выбрать спортзал.",
-                firstEpic);
+                firstEpic.getId());
         Subtask firstEpicSecondSubtask = new Subtask(
                 "Записаться в зал.",
                 "Оплатить абонемент.",
-                firstEpic);
+                firstEpic.getId());
         firstEpic.setSubtasks(new ArrayList<>(Arrays.asList(firstEpicFirstSubtask, firstEpicSecondSubtask)));
 
         Epic secondEpic = new Epic("Купить лежак для кошки.", "Купить лежак для кошки на подоконник.");
         Subtask secondEpicFirstSubtask = new Subtask(
                 "Заказать лежак в интернет магазине.",
                 "Выбрать и заказать лежак в интернет магазине.",
-                secondEpic);
+                secondEpic.getId());
         secondEpic.setSubtasks(new ArrayList<>(List.of(secondEpicFirstSubtask)));
 
         taskManager.addTask(firstTask);
@@ -84,7 +84,7 @@ public class ApplicationTest {
     public void historyTaskManagerTest(TaskManager taskManager) {
         Task task = new Task("Сходить в магазин.", "Купить продукты.");
         Epic epic = new Epic("Начать заниматься спортом.", "Пойти в спортзал.");
-        Subtask subtask = new Subtask("Выбрать место тренировок.", "Выбрать спортзал.", epic);
+        Subtask subtask = new Subtask("Выбрать место тренировок.", "Выбрать спортзал.", epic.getId());
 
         taskManager.addTask(task);
         taskManager.addEpic(epic);

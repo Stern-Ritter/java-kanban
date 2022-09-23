@@ -5,7 +5,7 @@ public enum Status {
     IN_PROGRESS("В работе"),
     DONE("Выполнена");
 
-    private final String description;
+    private String description;
 
     private Status(String description) {
         this.description = description;

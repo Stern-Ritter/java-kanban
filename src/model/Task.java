@@ -7,14 +7,10 @@ public class Task {
     private static final Status DEFAULT_TASK_STATUS = Status.NEW;
     private static int idSequence = 0;
 
-    private static int getNextId() {
-        return idSequence += ID_INCREMENT_STEP;
-    }
-    private final int id;
+    private int id;
     private String name;
     private String description;
     private Status status;
-
     public Task(String name, String description) {
         this.id = getNextId();
         this.name = name;
@@ -58,5 +54,9 @@ public class Task {
                 ", description='" + description + '\'' +
                 ", status=" + status +
                 '}';
+    }
+
+    private static int getNextId() {
+        return idSequence += ID_INCREMENT_STEP;
     }
 }
