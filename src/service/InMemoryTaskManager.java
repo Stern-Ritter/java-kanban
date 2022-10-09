@@ -119,6 +119,9 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public boolean deleteTaskById(int id) {
         Task existingTaskWithThisId = tasks.remove(id);
+        if(existingTaskWithThisId != null) {
+            historyManager.remove(id);
+        }
         return existingTaskWithThisId != null;
     }
 
@@ -127,8 +130,11 @@ public class InMemoryTaskManager implements TaskManager {
         Epic existingEpicWithThisId = epics.remove(id);
         if (existingEpicWithThisId != null) {
             for (Subtask subtask : existingEpicWithThisId.getSubtasks()) {
-                subtasks.remove(subtask.getId());
+                int subtaskId = subtask.getId();
+                subtasks.remove(subtaskId);
+                historyManager.remove(subtaskId);
             }
+            historyManager.remove(id);
         }
         return existingEpicWithThisId != null;
     }
@@ -136,6 +142,9 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public boolean deleteSubtaskById(int id) {
         Subtask existingSubtaskWithThisId = subtasks.remove(id);
+        if(existingSubtaskWithThisId != null) {
+            historyManager.remove(id);
+        }
         return existingSubtaskWithThisId != null;
     }
 

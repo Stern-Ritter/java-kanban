@@ -120,4 +120,65 @@ public class ApplicationTest {
 
         printBreakLine();
     }
+
+    public void  uniqueHistoryElementsTest(TaskManager taskManager) {
+        Task firstTask = new Task("Сходить в магазин.", "Купить продукты.");
+        Task secondTask = new Task("Убраться в квартире.", "Пропылесосить полы.");
+        taskManager.addTask(firstTask);
+        taskManager.addTask(secondTask);
+
+        Epic firstEpic = new Epic("Начать заниматься спортом.", "Пойти в спортзал.");
+        Subtask firstEpicFirstSubtask = new Subtask(
+                "Выбрать место тренировок.",
+                "Выбрать спортзал.",
+                firstEpic.getId());
+        Subtask firstEpicSecondSubtask = new Subtask(
+                "Записаться в зал.",
+                "Оплатить абонемент.",
+                firstEpic.getId());
+        Subtask firstEpicThirdSubtask = new Subtask(
+                "Записаться в зал.",
+                "Сходить на пробную тренировку.",
+                firstEpic.getId());
+        firstEpic.setSubtasks(new ArrayList<>(Arrays.asList(firstEpicFirstSubtask, firstEpicSecondSubtask, firstEpicThirdSubtask)));
+        taskManager.addEpic(firstEpic);
+        taskManager.addSubtask(firstEpicFirstSubtask);
+        taskManager.addSubtask(firstEpicSecondSubtask);
+        taskManager.addSubtask(firstEpicThirdSubtask);
+
+        Epic secondEpic = new Epic("Купить лежак для кошки.", "Купить лежак для кошки на подоконник.");
+        taskManager.addEpic(secondEpic);
+
+        taskManager.getTaskById(firstTask.getId());
+        taskManager.getTaskById(secondTask.getId());
+        taskManager.getEpicById(firstEpic.getId());
+        taskManager.getEpicById(secondEpic.getId());
+        taskManager.getSubtaskById(firstEpicFirstSubtask.getId());
+        taskManager.getSubtaskById(firstEpicSecondSubtask.getId());
+        taskManager.getSubtaskById(firstEpicThirdSubtask.getId());
+        System.out.println(taskManager.getHistory());
+
+        taskManager.getTaskById(firstTask.getId());
+        System.out.println(taskManager.getHistory());
+        taskManager.getTaskById(secondTask.getId());
+        System.out.println(taskManager.getHistory());
+        taskManager.getEpicById(firstEpic.getId());
+        System.out.println(taskManager.getHistory());
+        taskManager.getSubtaskById(firstEpicFirstSubtask.getId());
+        System.out.println(taskManager.getHistory());
+        taskManager.getSubtaskById(firstEpicSecondSubtask.getId());
+        System.out.println(taskManager.getHistory());
+        taskManager.getSubtaskById(firstEpicThirdSubtask.getId());
+        System.out.println(taskManager.getHistory());
+        taskManager.getEpicById(secondEpic.getId());
+        System.out.println(taskManager.getHistory());
+
+        taskManager.deleteTaskById(secondTask.getId());
+        System.out.println(taskManager.getHistory());
+
+        taskManager.deleteEpicById(firstEpic.getId());
+        System.out.println(taskManager.getHistory());
+
+        printBreakLine();
+    }
 }

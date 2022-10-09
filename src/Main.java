@@ -12,5 +12,8 @@ public class Main {
 
         TaskManager secondTestTaskManager = Managers.getDefault();
         applicationTest.historyTaskManagerTest(secondTestTaskManager);
+
+        TaskManager thirdTestTaskManager = Managers.getDefault();
+        applicationTest.uniqueHistoryElementsTest(thirdTestTaskManager);
     }
 }
