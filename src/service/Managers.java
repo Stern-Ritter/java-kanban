@@ -1,9 +1,4 @@
-package utils;
-
-import service.HistoryManager;
-import service.InMemoryHistoryManager;
-import service.InMemoryTaskManager;
-import service.TaskManager;
+package service;
 
 public class Managers {
     private static HistoryManager getDefaultHistory() {

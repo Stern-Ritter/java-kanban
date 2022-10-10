@@ -1,6 +1,6 @@
 import service.TaskManager;
 import test.ApplicationTest;
-import utils.Managers;
+import service.Managers;
 
 public class Main {
 

@@ -76,6 +76,8 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public boolean addTask(Task task) {
+        if(task == null) return false;
+
         int id = task.getId();
         Task existingTaskWithThisId = tasks.putIfAbsent(id, task);
         return existingTaskWithThisId == null;
@@ -83,6 +85,8 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public boolean addEpic(Epic epic) {
+        if(epic == null) return false;
+
         int id = epic.getId();
         Epic existingEpicWithThisId = epics.putIfAbsent(id, epic);
         return existingEpicWithThisId == null;
@@ -90,6 +94,8 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public boolean addSubtask(Subtask subtask) {
+        if(subtask == null) return false;
+
         int id = subtask.getId();
         Subtask existingSubtaskWithThisId = subtasks.putIfAbsent(id, subtask);
         return existingSubtaskWithThisId == null;
@@ -97,6 +103,8 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public boolean updateTask(Task task) {
+        if(task == null) return false;
+
         int id = task.getId();
         Task existingTaskWithThisId = tasks.replace(id, task);
         return existingTaskWithThisId != null;
@@ -104,6 +112,8 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public boolean updateEpic(Epic epic) {
+        if(epic == null) return false;
+
         int id = epic.getId();
         Epic existingEpicWithThisId = epics.replace(id, epic);
         return existingEpicWithThisId != null;
@@ -111,6 +121,8 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public boolean updateSubtask(Subtask subtask) {
+        if(subtask == null) return false;
+
         int id = subtask.getId();
         Subtask existingSubtaskWithThisId = subtasks.replace(id, subtask);
         return existingSubtaskWithThisId != null;

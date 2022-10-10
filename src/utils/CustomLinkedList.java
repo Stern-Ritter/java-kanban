@@ -9,6 +9,10 @@ public class CustomLinkedList<T> {
     private int size;
 
     public Node<T> linkLast(T element) {
+        if (element == null) {
+            throw new IllegalArgumentException("Method is called with null argument.");
+        }
+
         Node<T> addedNode = new Node<>(null, null, element);
         if (head == null) {
             head = addedNode;
@@ -40,6 +44,9 @@ public class CustomLinkedList<T> {
 
     public void removeNode(Node<T> node) {
         if (size == 0) return;
+        if (node == null) {
+            throw new IllegalArgumentException("Method is called with null argument.");
+        }
 
         Node<T> previousNode = node.getPrevious();
         Node<T> nextNode = node.getNext();
