@@ -7,6 +7,8 @@ import model.Task;
 import java.util.List;
 
 public interface TaskManager {
+    int getNextTaskId();
+
     List<Task> getTasks();
 
     List<Epic> getEpics();

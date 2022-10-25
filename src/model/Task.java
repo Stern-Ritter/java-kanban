@@ -3,19 +3,25 @@ package model;
 import utils.Status;
 
 public class Task {
-    private static final int ID_INCREMENT_STEP = 1;
     private static final Status DEFAULT_TASK_STATUS = Status.NEW;
-    private static int idSequence = 0;
 
     private int id;
     private String name;
     private String description;
     private Status status;
-    public Task(String name, String description) {
-        this.id = getNextId();
+
+    public Task(int id, String name, String description) {
+        this.id = id;
         this.name = name;
         this.description = description;
         this.status = DEFAULT_TASK_STATUS;
+    }
+
+    public Task(int id, String name, String description, Status status) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.status = status;
     }
 
     public int getId() {
@@ -54,9 +60,5 @@ public class Task {
                 ", description='" + description + '\'' +
                 ", status=" + status +
                 '}';
-    }
-
-    private static int getNextId() {
-        return idSequence += ID_INCREMENT_STEP;
     }
 }
