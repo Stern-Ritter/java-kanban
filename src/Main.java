@@ -1,6 +1,4 @@
 import service.FileBackendTaskManager;
-import service.HistoryManager;
-import service.InMemoryHistoryManager;
 import service.Managers;
 import service.TaskManager;
 import test.ApplicationTest;
@@ -22,12 +20,10 @@ public class Main {
         applicationTest.uniqueHistoryElementsTest(thirdTestTaskManager);
 
         File file = new File("data/TasksData.csv");
-        HistoryManager firstHistoryManager = new InMemoryHistoryManager();
-        TaskManager firstFileBackendTaskManager = FileBackendTaskManager.loadFromFile(firstHistoryManager, file);
+        TaskManager firstFileBackendTaskManager = FileBackendTaskManager.loadFromFile(file);
         applicationTest.fileBackendTaskManagerSaveToFileTest(firstFileBackendTaskManager);
 
-        HistoryManager secondHistoryManager = new InMemoryHistoryManager();
-        TaskManager secondFileBackendTaskManager = FileBackendTaskManager.loadFromFile(secondHistoryManager, file);
+        TaskManager secondFileBackendTaskManager = FileBackendTaskManager.loadFromFile(file);
         applicationTest.fileBackendTaskManagerLoadFromFileTest(secondFileBackendTaskManager);
     }
 }

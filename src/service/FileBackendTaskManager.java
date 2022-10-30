@@ -18,6 +18,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 public class FileBackendTaskManager extends InMemoryTaskManager implements TaskManager {
     private static final String LINE_SEPARATOR = "\\r?\\n";
@@ -28,75 +30,46 @@ public class FileBackendTaskManager extends InMemoryTaskManager implements TaskM
         this.file = file;
     }
 
-    public static FileBackendTaskManager loadFromFile(HistoryManager historyManager, File file) {
-        FileBackendTaskManager fileBackedTasksManager = new FileBackendTaskManager(historyManager, file);
+    private static String[] getLinesFromFile(File file) throws IOException {
+        String filePath = file.getAbsolutePath();
+        String data = Files.readString(Path.of(filePath));
+        return data.split(LINE_SEPARATOR);
+    }
+
+    public static FileBackendTaskManager loadFromFile(File file) {
+        HistoryManager historyManager = new InMemoryHistoryManager();
+        FileBackendTaskManager tasksManager = new FileBackendTaskManager(historyManager, file);
 
         try {
-            String filePath = file.getAbsolutePath();
-            String data = Files.readString(Path.of(filePath));
-            String[] lines = data.split(LINE_SEPARATOR);
-
-            Map<Integer, Task> savedElements = new HashMap<>();
-            int maxCurrentTaskId = 0;
-
-            for (String line : lines) {
-                if (line.isEmpty()) {
-                    break;
-                }
-
-                Task task = TaskParser.fromString(line);
-                if (task instanceof Epic) {
-                    Epic epic = (Epic) task;
-                    fileBackedTasksManager.addEpic(epic);
-                    int epicId = epic.getId();
-                    savedElements.put(epicId, epic);
-                    maxCurrentTaskId = Math.max(maxCurrentTaskId, epicId);
-                } else if (task instanceof Subtask) {
-                    Subtask subtask = (Subtask) task;
-                    fileBackedTasksManager.addSubtask(subtask);
-                    int subtaskId = subtask.getId();
-                    savedElements.put(subtaskId, subtask);
-                    maxCurrentTaskId = Math.max(maxCurrentTaskId, subtaskId);
-                } else {
-                    fileBackedTasksManager.addTask(task);
-                    int taskId = task.getId();
-                    savedElements.put(taskId, task);
-                    maxCurrentTaskId = Math.max(maxCurrentTaskId, taskId);
-                }
-            }
-
-            fileBackedTasksManager.setTaskIdSequence(maxCurrentTaskId);
-
-            updateHistory(historyManager, lines, savedElements);
-            fileBackedTasksManager.save();
-
-            Map<Integer, Epic> epics = fileBackedTasksManager.getEpicsStorage();
-            List<Subtask> subtasks = fileBackedTasksManager.getSubtasks();
-            updateEpicsSubtasks(epics, subtasks);
+            String[] lines = getLinesFromFile(file);
+            tasksManager.loadTasks(lines);
+            tasksManager.updateEpicsSubtasks();
+            tasksManager.loadHistory(lines);
+            tasksManager.updateTaskIdSequence();
+            tasksManager.save();
         } catch (IOException | IndexOutOfBoundsException | IllegalArgumentException ex) {
             throw new ManagerSaveException("Ошибка чтения файла данных задач и истории просмотра.", ex);
         }
 
-        return fileBackedTasksManager;
+        return tasksManager;
     }
 
-    private static void updateHistory(HistoryManager historyManager, String[] lines, Map<Integer, Task> savedElements) {
-        try {
-            String lastLine = lines[lines.length - 1];
-            HistoryManagerParser.historyFromString(lastLine).stream()
-                    .map(savedElements::get)
-                    .forEach(historyManager::add);
-        } catch (IndexOutOfBoundsException | IllegalArgumentException ex) {
-            System.out.println("История просмотра задач не найдена.");
+    private void loadTasks(String[] lines) throws IndexOutOfBoundsException, IllegalArgumentException {
+        for (String line : lines) {
+            if (line.isEmpty()) { break; }
+            Task task = TaskParser.fromString(line);
+            addSavedTask(task);
         }
     }
 
-    private static void updateEpicsSubtasks(Map<Integer, Epic> epics, List<Subtask> subtasks) {
+    private void updateEpicsSubtasks() {
+        Map<Integer, Epic> epics = getEpicsStorage();
+        List<Subtask> subtasks = getSubtasks();
         Map<Integer, List<Subtask>> epicsSubtasks = new HashMap<>();
 
         for (Subtask subtask : subtasks) {
             int epicId = subtask.getEpicId();
-            List<Subtask> currentSubtasks = epicsSubtasks.getOrDefault(epicId, new ArrayList<Subtask>());
+            List<Subtask> currentSubtasks = epicsSubtasks.getOrDefault(epicId, new ArrayList<>());
             currentSubtasks.add(subtask);
             epicsSubtasks.put(epicId, currentSubtasks);
         }
@@ -109,37 +82,61 @@ public class FileBackendTaskManager extends InMemoryTaskManager implements TaskM
         }
     }
 
+    private void loadHistory(String[] lines) {
+        try {
+            String lastLine = lines[lines.length - 1];
+            List<Integer> tasksId = HistoryManagerParser.historyFromString(lastLine);
+            HistoryManager historyManager = getHistoryManager();
+            Map<Integer, Task> tasks = getAllTasksStorage();
+
+            for(Integer taskId : tasksId) {
+                Task task = tasks.get(taskId);
+                historyManager.add(task);
+            }
+        } catch (IndexOutOfBoundsException | IllegalArgumentException ex) {
+            System.out.println("История просмотра задач не найдена.");
+        }
+    }
+
+    private void updateTaskIdSequence() {
+        Stream<Integer> tasksId = getTasks().stream().map(Task::getId);
+        Stream<Integer> epicsId = getEpics().stream().map(Task::getId);
+        Stream<Integer> subtasksId = getSubtasks().stream().map(Task::getId);
+        int maxCurrentTaskId = Stream.of(tasksId, epicsId, subtasksId)
+                .flatMap(Function.identity())
+                .max(Integer::compare)
+                .orElse(TASK_ID_INITIAL_VALUE);
+
+        setTaskIdSequence(maxCurrentTaskId);
+    }
+
     private void save() {
         String filePath = file.getAbsolutePath();
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(filePath, StandardCharsets.UTF_8))) {
-            List<Task> tasks = getTasks();
-            for (Task task : tasks) {
-                String line = TaskParser.toString(task);
-                bufferedWriter.write(line);
+            List<Task> allTasks = getAllTasks();
+            String historyLine = HistoryManagerParser.historyToString(getHistoryManager());
+            
+            for (Task task : allTasks) {
+                String taskLine = TaskParser.toString(task);
+                bufferedWriter.write(taskLine);
                 bufferedWriter.newLine();
             }
-
-            List<Epic> epics = getEpics();
-            for (Epic epic : epics) {
-                String line = TaskParser.toString(epic);
-                bufferedWriter.write(line);
-                bufferedWriter.newLine();
-            }
-
-            List<Subtask> subtasks = getSubtasks();
-            for (Subtask subtask : subtasks) {
-                String line = TaskParser.toString(subtask);
-                bufferedWriter.write(line);
-                bufferedWriter.newLine();
-            }
-
             bufferedWriter.newLine();
-
-            HistoryManager historyManager = getHistoryManager();
-            String line = HistoryManagerParser.historyToString(historyManager);
-            bufferedWriter.write(line);
+            bufferedWriter.write(historyLine);
         } catch (IOException | IllegalArgumentException ex) {
             throw new ManagerSaveException("Ошибка записи файла данных задач и истории просмотра.", ex);
+        }
+    }
+
+    private void addSavedTask(Task task) {
+        if (task instanceof Epic) {
+            Epic epic = (Epic) task;
+            addEpic(epic);
+        } else if (task instanceof Subtask) {
+            Subtask subtask = (Subtask) task;
+            addSubtask(subtask);
+        } else {
+            addTask(task);
         }
     }
 
