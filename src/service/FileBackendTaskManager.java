@@ -237,7 +237,7 @@ public class FileBackendTaskManager extends InMemoryTaskManager implements TaskM
 
     @Override
     public boolean deleteSubtaskById(int id) {
-        boolean deleteStatus = deleteEpicById(id);
+        boolean deleteStatus = super.deleteSubtaskById(id);
         save();
         return deleteStatus;
     }

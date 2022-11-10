@@ -4,20 +4,36 @@ import model.Epic;
 import model.Subtask;
 import model.Task;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class InMemoryTaskManager implements TaskManager {
     public static final int TASK_ID_INITIAL_VALUE = 0;
     public static final int TASK_ID_INCREMENT_STEP = 1;
-    private int taskIdSequence;
+    private static final long DEFAULT_DATE_TIME_MILLIS = 0L;
+    private static final Comparator<Task> startDateComparator = (firstDateTime, secondDateTime) -> {
+        long firstDateMillis = Optional.of(firstDateTime.getStartTime().atZone(ZoneOffset.UTC).toInstant().toEpochMilli()).orElse(DEFAULT_DATE_TIME_MILLIS);
+        long secondDateMillis = Optional.of(secondDateTime.getStartTime().atZone(ZoneOffset.UTC).toInstant().toEpochMilli()).orElse(DEFAULT_DATE_TIME_MILLIS);
+        return Long.compare(firstDateMillis, secondDateMillis);
+    };
 
+    private static final String ADD_TASK_INTERSECTION_ERROR_TEXT = "Добавляемая задача пересекается по времени с уже созданными.";
+    private static final String UPDATE_TASK_INTERSECTION_ERROR_TEXT = "Обновляемая задача пересекается по времени с уже созданными.";
+
+    private int taskIdSequence;
     private final Map<Integer, Task> tasksStorage;
     private final Map<Integer, Epic> epicsStorage;
     private final Map<Integer, Subtask> subtasksStorage;
+    private final Set<Task> prioritizedTasksStorage;
     private final HistoryManager historyManager;
 
     public InMemoryTaskManager(HistoryManager historyManager) {
@@ -26,6 +42,7 @@ public class InMemoryTaskManager implements TaskManager {
         this.tasksStorage = new HashMap<>();
         this.epicsStorage = new HashMap<>();
         this.subtasksStorage = new HashMap<>();
+        this.prioritizedTasksStorage = new TreeSet<>(startDateComparator);
     }
 
     public void setTaskIdSequence(int taskIdSequence) {
@@ -54,6 +71,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void deleteAllTasks() {
         tasksStorage.clear();
+        prioritizedTasksStorage.removeIf(task -> !(task instanceof Subtask));
     }
 
     @Override
@@ -64,6 +82,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void deleteAllSubtasks() {
         subtasksStorage.clear();
+        prioritizedTasksStorage.removeIf(task -> task instanceof Subtask);
     }
 
     @Override
@@ -90,9 +109,13 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public boolean addTask(Task task) {
         if (task == null) return false;
+        if(isTaskOverlapping(task)) {
+            throw new IllegalArgumentException(ADD_TASK_INTERSECTION_ERROR_TEXT);
+        }
 
         int id = task.getId();
         Task existingTaskWithThisId = tasksStorage.putIfAbsent(id, task);
+        prioritizedTasksStorage.add(task);
         return existingTaskWithThisId == null;
     }
 
@@ -108,18 +131,27 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public boolean addSubtask(Subtask subtask) {
         if (subtask == null) return false;
+        if(isTaskOverlapping(subtask)) {
+            throw new IllegalArgumentException(ADD_TASK_INTERSECTION_ERROR_TEXT);
+        }
 
         int id = subtask.getId();
         Subtask existingSubtaskWithThisId = subtasksStorage.putIfAbsent(id, subtask);
+        prioritizedTasksStorage.add(subtask);
         return existingSubtaskWithThisId == null;
     }
 
     @Override
     public boolean updateTask(Task task) {
         if (task == null) return false;
+        if(isTaskOverlapping(task)) {
+            throw new IllegalArgumentException(UPDATE_TASK_INTERSECTION_ERROR_TEXT);
+        }
 
         int id = task.getId();
         Task existingTaskWithThisId = tasksStorage.replace(id, task);
+        prioritizedTasksStorage.remove(task);
+        prioritizedTasksStorage.add(task);
         return existingTaskWithThisId != null;
     }
 
@@ -135,9 +167,14 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public boolean updateSubtask(Subtask subtask) {
         if (subtask == null) return false;
+        if(isTaskOverlapping(subtask)) {
+            throw new IllegalArgumentException(UPDATE_TASK_INTERSECTION_ERROR_TEXT);
+        }
 
         int id = subtask.getId();
         Subtask existingSubtaskWithThisId = subtasksStorage.replace(id, subtask);
+        prioritizedTasksStorage.remove(subtask);
+        prioritizedTasksStorage.add(subtask);
         return existingSubtaskWithThisId != null;
     }
 
@@ -145,6 +182,7 @@ public class InMemoryTaskManager implements TaskManager {
     public boolean deleteTaskById(int id) {
         Task existingTaskWithThisId = tasksStorage.remove(id);
         if (existingTaskWithThisId != null) {
+            prioritizedTasksStorage.remove(existingTaskWithThisId);
             historyManager.remove(id);
         }
         return existingTaskWithThisId != null;
@@ -156,8 +194,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (existingEpicWithThisId != null) {
             for (Subtask subtask : existingEpicWithThisId.getSubtasks()) {
                 int subtaskId = subtask.getId();
-                subtasksStorage.remove(subtaskId);
-                historyManager.remove(subtaskId);
+                deleteSubtaskById(subtaskId);
             }
             historyManager.remove(id);
         }
@@ -168,6 +205,7 @@ public class InMemoryTaskManager implements TaskManager {
     public boolean deleteSubtaskById(int id) {
         Subtask existingSubtaskWithThisId = subtasksStorage.remove(id);
         if (existingSubtaskWithThisId != null) {
+            prioritizedTasksStorage.remove(existingSubtaskWithThisId);
             historyManager.remove(id);
         }
         return existingSubtaskWithThisId != null;
@@ -185,6 +223,13 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public List<Task> getHistory() {
         return historyManager.getHistory();
+    }
+
+    @Override
+    public List<Task> getPrioritizedTasks() {
+        List<Task> prioritizedTasks = new ArrayList<>(prioritizedTasksStorage.size());
+        prioritizedTasks.addAll(prioritizedTasksStorage);
+        return prioritizedTasks;
     }
 
     protected HistoryManager getHistoryManager() {
@@ -209,5 +254,18 @@ public class InMemoryTaskManager implements TaskManager {
         tasks.addAll(getEpics());
         tasks.addAll(getSubtasks());
         return tasks;
+    }
+
+    private boolean isTaskOverlapping(Task addedTask) {
+        if(addedTask == null) {
+            return false;
+        }
+        int addedTaskId = addedTask.getId();
+        LocalDateTime addedTaskStartTime = addedTask.getStartTime();
+        LocalDateTime addedTaskEndTime = addedTask.getEndTime();
+        return prioritizedTasksStorage.stream()
+                .anyMatch(savedTask -> addedTaskId != savedTask.getId() &&
+                        addedTaskStartTime.compareTo(savedTask.getEndTime()) <= 0 &&
+                        savedTask.getStartTime().compareTo(addedTaskEndTime) <= 0);
     }
 }
