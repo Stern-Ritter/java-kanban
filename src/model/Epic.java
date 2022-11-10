@@ -2,19 +2,25 @@ package model;
 
 import utils.Status;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NavigableSet;
+import java.util.Objects;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 public class Epic extends Task {
+    private static final int DEFAULT_EPIC_DURATION = 0;
     private List<Subtask> subtasks;
 
-    public Epic(int id, String name, String description) {
-        super(id, name, description);
+    public Epic(int id, String name, String description, LocalDateTime startTime) {
+        super(id, name, description, DEFAULT_EPIC_DURATION, startTime);
         this.subtasks = new ArrayList<>();
     }
 
-    public Epic(int id, String name, String description, Status status) {
-        super(id, name, description, status);
+    public Epic(int id, String name, String description, Status status, LocalDateTime startTime) {
+        super(id, name, description, status, DEFAULT_EPIC_DURATION, startTime);
         this.subtasks = new ArrayList<>();
     }
 
@@ -54,6 +60,36 @@ public class Epic extends Task {
         updateStatus();
     }
 
+
+    @Override
+    public LocalDateTime getStartTime() {
+        if(subtasks.isEmpty())  {
+            return super.getStartTime();
+        }
+        NavigableSet<LocalDateTime> sortedSubtasksStartTime = subtasks.stream()
+                .map(Subtask::getStartTime)
+                .collect(Collectors.toCollection(TreeSet::new));
+        return sortedSubtasksStartTime.first();
+    }
+
+    @Override
+    public int getDuration() {
+        return subtasks.stream()
+                .mapToInt(Subtask::getDuration)
+                .sum();
+    }
+
+    @Override
+    public LocalDateTime getEndTime() {
+        if(subtasks.isEmpty())  {
+            return super.getEndTime();
+        }
+        NavigableSet<LocalDateTime> sortedSubtasksEndTime = subtasks.stream()
+                .map(Subtask::getEndTime)
+                .collect(Collectors.toCollection(TreeSet::new));
+        return sortedSubtasksEndTime.last();
+    }
+
     @Override
     public String toString() {
         return "Epic{" +
@@ -61,7 +97,19 @@ public class Epic extends Task {
                 ", name='" + getName() + '\'' +
                 ", description='" + getDescription() + '\'' +
                 ", status=" + getStatus() +
+                ", duration=" + getDuration() +
+                ", startTime=" + getStartTime() +
+                ", endTime=" + getEndTime() +
                 ", subtasks=" + subtasks +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Epic)) return false;
+        if (!super.equals(o)) return false;
+        Epic epic = (Epic) o;
+        return Objects.equals(getSubtasks(), epic.getSubtasks());
     }
 }
