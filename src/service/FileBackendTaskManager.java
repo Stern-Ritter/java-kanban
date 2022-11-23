@@ -22,39 +22,25 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 public class FileBackendTaskManager extends InMemoryTaskManager implements TaskManager {
-    private static final String LINE_SEPARATOR = "\\r?\\n";
+    protected static final String LINE_SEPARATOR = "\\r?\\n";
     private File file;
 
-    private FileBackendTaskManager(HistoryManager historyManager, File file) {
+    protected FileBackendTaskManager(HistoryManager historyManager) {
+        super(historyManager);
+    }
+
+    protected FileBackendTaskManager(HistoryManager historyManager, File file) {
         super(historyManager);
         this.file = file;
     }
 
-    private static String[] getLinesFromFile(File file) throws IOException {
+    protected static String[] getLinesFromFile(File file) throws IOException {
         String filePath = file.getAbsolutePath();
         String data = Files.readString(Path.of(filePath));
         return data.split(LINE_SEPARATOR);
     }
 
-    public static FileBackendTaskManager loadFromFile(File file) {
-        HistoryManager historyManager = new InMemoryHistoryManager();
-        FileBackendTaskManager tasksManager = new FileBackendTaskManager(historyManager, file);
-
-        try {
-            String[] lines = getLinesFromFile(file);
-            tasksManager.loadTasks(lines);
-            tasksManager.updateEpicsSubtasks();
-            tasksManager.loadHistory(lines);
-            tasksManager.updateTaskIdSequence();
-            tasksManager.save();
-        } catch (IOException | IndexOutOfBoundsException | IllegalArgumentException ex) {
-            throw new ManagerSaveException("Ошибка чтения файла данных задач и истории просмотра.", ex);
-        }
-
-        return tasksManager;
-    }
-
-    private void loadTasks(String[] lines) throws IndexOutOfBoundsException, IllegalArgumentException {
+    protected void loadTasks(String[] lines) throws IndexOutOfBoundsException, IllegalArgumentException {
         for (String line : lines) {
             if (line.isEmpty()) { break; }
             Task task = TaskParser.fromString(line);
@@ -62,7 +48,7 @@ public class FileBackendTaskManager extends InMemoryTaskManager implements TaskM
         }
     }
 
-    private void updateEpicsSubtasks() {
+    protected void updateEpicsSubtasks() {
         Map<Integer, Epic> epics = getEpicsStorage();
         List<Subtask> subtasks = getSubtasks();
         Map<Integer, List<Subtask>> epicsSubtasks = new HashMap<>();
@@ -82,7 +68,7 @@ public class FileBackendTaskManager extends InMemoryTaskManager implements TaskM
         }
     }
 
-    private void loadHistory(String[] lines) {
+    protected void loadHistory(String[] lines) {
         try {
             String lastLine = lines[lines.length - 1];
             List<Integer> tasksId = HistoryManagerParser.historyFromString(lastLine);
@@ -98,7 +84,7 @@ public class FileBackendTaskManager extends InMemoryTaskManager implements TaskM
         }
     }
 
-    private void updateTaskIdSequence() {
+    protected void updateTaskIdSequence() {
         Stream<Integer> tasksId = getTasks().stream().map(Task::getId);
         Stream<Integer> epicsId = getEpics().stream().map(Task::getId);
         Stream<Integer> subtasksId = getSubtasks().stream().map(Task::getId);
@@ -110,7 +96,7 @@ public class FileBackendTaskManager extends InMemoryTaskManager implements TaskM
         setTaskIdSequence(maxCurrentTaskId);
     }
 
-    private void save() {
+    protected void save() {
         String filePath = file.getAbsolutePath();
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(filePath, StandardCharsets.UTF_8))) {
             List<Task> allTasks = getAllTasks();
@@ -128,7 +114,7 @@ public class FileBackendTaskManager extends InMemoryTaskManager implements TaskM
         }
     }
 
-    private void addSavedTask(Task task) {
+    protected void addSavedTask(Task task) {
         if (task instanceof Epic) {
             Epic epic = (Epic) task;
             addEpic(epic);
@@ -138,6 +124,24 @@ public class FileBackendTaskManager extends InMemoryTaskManager implements TaskM
         } else {
             addTask(task);
         }
+    }
+
+    public static FileBackendTaskManager loadFromFile(File file) {
+        HistoryManager historyManager = new InMemoryHistoryManager();
+        FileBackendTaskManager tasksManager = new FileBackendTaskManager(historyManager, file);
+
+        try {
+            String[] lines = getLinesFromFile(file);
+            tasksManager.loadTasks(lines);
+            tasksManager.updateEpicsSubtasks();
+            tasksManager.loadHistory(lines);
+            tasksManager.updateTaskIdSequence();
+            tasksManager.save();
+        } catch (IOException | IndexOutOfBoundsException | IllegalArgumentException ex) {
+            throw new ManagerSaveException("Ошибка чтения файла данных задач и истории просмотра.", ex);
+        }
+
+        return tasksManager;
     }
 
     @Override
