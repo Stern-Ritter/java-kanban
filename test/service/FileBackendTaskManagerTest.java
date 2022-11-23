@@ -43,13 +43,13 @@ public class FileBackendTaskManagerTest extends TaskManagerTest<FileBackendTaskM
             DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
     private static final LocalDateTime FIRST_EPIC_START_TIME = LocalDateTime.parse(FIRST_EPIC_START_TIME_STRING,
             DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
-    private static final LocalDateTime SECOND_EPIC_START_TIME = LocalDateTime.parse(SECOND_EPIC_START_TIME_STRING ,
+    private static final LocalDateTime SECOND_EPIC_START_TIME = LocalDateTime.parse(SECOND_EPIC_START_TIME_STRING,
             DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
-    private static final LocalDateTime FIRST_SUBTASK_START_TIME = LocalDateTime.parse(FIRST_SUBTASK_START_TIME_STRING ,
+    private static final LocalDateTime FIRST_SUBTASK_START_TIME = LocalDateTime.parse(FIRST_SUBTASK_START_TIME_STRING,
             DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
     private static final LocalDateTime SECOND_SUBTASK_START_TIME = LocalDateTime.parse(SECOND_SUBTASK_START_TIME_STRING,
             DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
-    private static final LocalDateTime THIRD_SUBTASK_START_TIME = LocalDateTime.parse(THIRD_SUBTASK_START_TIME_STRING ,
+    private static final LocalDateTime THIRD_SUBTASK_START_TIME = LocalDateTime.parse(THIRD_SUBTASK_START_TIME_STRING,
             DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
 
     private File file;
@@ -96,7 +96,7 @@ public class FileBackendTaskManagerTest extends TaskManagerTest<FileBackendTaskM
     }
 
     @Test
-    public void saveStateInFileWithHistoryLine() {
+    void saveStateInFileWithHistoryLine() {
         firstEpic.setSubtasks(List.of(firstEpicFirstSubtask, firstEpicSecondSubtask));
         secondEpic.setSubtasks(List.of(secondEpicFirstSubtask));
 
@@ -167,7 +167,7 @@ public class FileBackendTaskManagerTest extends TaskManagerTest<FileBackendTaskM
     }
 
     @Test
-    public void saveStateInFileWithEmptyTasks() {
+    void saveStateInFileWithEmptyTasks() {
         firstEpic.setSubtasks(List.of(firstEpicFirstSubtask, firstEpicSecondSubtask));
         secondEpic.setSubtasks(List.of(secondEpicFirstSubtask));
 
@@ -234,7 +234,7 @@ public class FileBackendTaskManagerTest extends TaskManagerTest<FileBackendTaskM
     }
 
     @Test
-    public void saveStateInFileWithEmptyHistoryLine() {
+    void saveStateInFileWithEmptyHistoryLine() {
         firstEpic.setSubtasks(List.of(firstEpicFirstSubtask, firstEpicSecondSubtask));
         secondEpic.setSubtasks(List.of(secondEpicFirstSubtask));
 
@@ -297,7 +297,7 @@ public class FileBackendTaskManagerTest extends TaskManagerTest<FileBackendTaskM
     }
 
     @Test
-    public void saveStateInFileWithEpicsWithoutSubtasks() {
+    void saveStateInFileWithEpicsWithoutSubtasks() {
         taskManager.addEpic(firstEpic);
         taskManager.addEpic(secondEpic);
 
