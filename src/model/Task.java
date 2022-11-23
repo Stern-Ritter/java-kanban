@@ -49,6 +49,22 @@ public class Task {
         return status;
     }
 
+    public int getDuration() {
+        return duration;
+    }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public LocalDateTime getEndTime() {
+        return startTime.plusMinutes(duration);
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
     public void setName(String name) {
         this.name = name;
     }
@@ -61,16 +77,12 @@ public class Task {
         this.status = status;
     }
 
-    public LocalDateTime getStartTime() {
-        return startTime;
+    public void setDuration(int duration) {
+        this.duration = duration;
     }
 
-    public int getDuration() {
-        return duration;
-    }
-
-    public LocalDateTime getEndTime() {
-        return startTime.plusMinutes(duration);
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
     }
 
     @Override
