@@ -32,12 +32,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertIterableEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 class HttpTaskServerTest {
-    private static final String URL = "http://localhost:8080";
+    private static final int HTTP_TASK_SERVER_PORT = 8080;
+    private static final int KEY_VALUE_STORAGE_PORT = 8078;
+    private static final String URL = String.format("http://localhost:%d", HTTP_TASK_SERVER_PORT);
     private static final String ROOT_PATH = "tasks";
     private static final String TASK_PATH = "task";
     private static final String SUBTASK_PATH = "subtask";
@@ -68,7 +68,7 @@ class HttpTaskServerTest {
             DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
 
     private HttpTaskServer taskServer;
-    private KVServer kvServer;
+    private KeyValueStorage keyValueStorage;
     private TaskManager taskManager;
     private HttpClient client;
     private Gson gson;
@@ -106,14 +106,14 @@ class HttpTaskServerTest {
     @BeforeEach
     void setUp() {
         try {
-            kvServer = new KVServer();
-            kvServer.start();
+            keyValueStorage = new KeyValueStorage(KEY_VALUE_STORAGE_PORT);
+            keyValueStorage.start();
         } catch (IOException | HttpClientException ex) {
             System.out.println("Не удалось запустить KVServer.");
         }
 
         try {
-            taskServer = new HttpTaskServer();
+            taskServer = new HttpTaskServer(HTTP_TASK_SERVER_PORT);
             taskServer.start();
         } catch (IOException ex) {
             System.out.println("Не удалось запустить HttpTaskServer.");
@@ -134,7 +134,7 @@ class HttpTaskServerTest {
 
     @AfterEach
     void shutDown() {
-        kvServer.stop();
+        keyValueStorage.stop();
         taskServer.stop();
     }
 

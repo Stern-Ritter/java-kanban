@@ -1,30 +1,32 @@
 package service;
 
 import client.Client;
-import client.KVTaskClient;
+import client.KeyValueStorageClient;
 import exceptions.HttpClientException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import server.HttpTaskServer;
-import server.KVServer;
+import server.KeyValueStorage;
 
 import java.io.IOException;
 
 public class HttpTaskManagerTest extends FileBackendTaskManagerTest {
-    private static final String TEST_URL = "http://localhost:8078";
+    private static final int HTTP_TASK_SERVER_PORT = 8080;
+    private static final int KEY_VALUE_STORAGE_PORT = 8078;
+    private static final String TEST_URL = String.format("http://localhost:%d", KEY_VALUE_STORAGE_PORT);
     private static final String TEST_API_KEY = "test";
     private Client client;
 
     @BeforeAll
     static void startServer() {
         try {
-            new KVServer().start();
+            new KeyValueStorage(KEY_VALUE_STORAGE_PORT).start();
         } catch (IOException | HttpClientException ex) {
             System.out.println("Не удалось запустить KVServer.");
         }
 
         try {
-            new HttpTaskServer().start();
+            new HttpTaskServer(HTTP_TASK_SERVER_PORT).start();
         } catch (IOException ex) {
             System.out.println("Не удалось запустить HttpTaskServer.");
         }
@@ -43,7 +45,7 @@ public class HttpTaskManagerTest extends FileBackendTaskManagerTest {
     public FileBackendTaskManager getTaskManager() {
         try {
             HistoryManager historyManager = Managers.getDefaultHistory();
-            client = new KVTaskClient(TEST_URL);
+            client = new KeyValueStorageClient(TEST_URL);
             return new HTTPTaskManager(historyManager, TEST_API_KEY, client);
         } catch (IOException | InterruptedException ex) {
             throw new HttpClientException("Ошибка запуска сервера.", ex);

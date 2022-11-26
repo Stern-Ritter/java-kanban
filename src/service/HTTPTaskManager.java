@@ -1,7 +1,7 @@
 package service;
 
 import client.Client;
-import client.KVTaskClient;
+import client.KeyValueStorageClient;
 import exceptions.HttpClientException;
 import model.Task;
 import utils.HistoryManagerParser;
@@ -49,7 +49,7 @@ public class HTTPTaskManager extends FileBackendTaskManager {
     public static HTTPTaskManager loadFromServer(String url, String apiKey) {
         try {
             HistoryManager historyManager = Managers.getDefaultHistory();
-            Client client = new KVTaskClient(url);
+            Client client = new KeyValueStorageClient(url);
             HTTPTaskManager tasksManager = new HTTPTaskManager(historyManager, apiKey, client);
 
             String[] lines = tasksManager.getLinesFromServer(client);
