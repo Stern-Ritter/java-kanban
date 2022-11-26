@@ -1,4 +1,4 @@
-package handler;
+package handlers.tasks;
 
 import com.sun.net.httpserver.HttpExchange;
 import model.Epic;

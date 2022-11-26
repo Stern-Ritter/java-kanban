@@ -1,7 +1,7 @@
-package handler;
+package handlers.tasks;
 
 import com.sun.net.httpserver.HttpExchange;
-import model.Subtask;
+import model.Epic;
 import service.TaskManager;
 
 import java.io.IOException;
@@ -10,10 +10,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class SubtasksHandler extends Handler {
-    public static final String PATH = "/tasks/subtask";
+public class EpicsHandler extends Handler {
+    public static final String PATH = "/tasks/epic";
 
-    public SubtasksHandler(TaskManager taskManager) {
+    public EpicsHandler(TaskManager taskManager) {
         super(taskManager);
     }
 
@@ -23,13 +23,13 @@ public class SubtasksHandler extends Handler {
         String idParameterValue = queryParameters.get(ID_PARAMETER_NAME);
 
         if (idParameterValue == null) {
-            List<Subtask> subtasks = taskManager.getSubtasks();
-            String body = gson.toJson(subtasks);
+            List<Epic> epics = taskManager.getEpics();
+            String body = gson.toJson(epics);
             sendResponse(exchange, HttpURLConnection.HTTP_OK, body);
         } else {
             int id = Integer.parseInt(idParameterValue);
-            Subtask subtask = Optional.ofNullable(taskManager.getSubtaskById(id)).orElseThrow();
-            String body = gson.toJson(subtask);
+            Epic epic = Optional.ofNullable(taskManager.getEpicById(id)).orElseThrow();
+            String body = gson.toJson(epic);
             sendResponse(exchange, HttpURLConnection.HTTP_OK, body);
         }
     }
@@ -37,15 +37,15 @@ public class SubtasksHandler extends Handler {
     @Override
     protected void post(HttpExchange exchange) throws IOException {
         String body = getBody(exchange);
-        Subtask subtask = gson.fromJson(body, Subtask.class);
-        int id = subtask.getId();
-        boolean exists = taskManager.getSubtaskById(id) != null;
+        Epic epic = gson.fromJson(body, Epic.class);
+        int id = epic.getId();
+        boolean exists = taskManager.getEpicById(id) != null;
         boolean success;
 
         if (exists) {
-            success = taskManager.updateSubtask(subtask);
+            success = taskManager.updateEpic(epic);
         } else {
-            success = taskManager.addSubtask(subtask);
+            success = taskManager.addEpic(epic);
         }
 
         if (success) {
@@ -61,10 +61,10 @@ public class SubtasksHandler extends Handler {
         String idParameterValue = queryParameters.get(ID_PARAMETER_NAME);
 
         if (idParameterValue == null) {
-            taskManager.deleteAllSubtasks();
+            taskManager.deleteAllEpics();
         } else {
             int id = Integer.parseInt(idParameterValue);
-            taskManager.deleteSubtaskById(id);
+            taskManager.deleteEpicById(id);
         }
 
         sendResponse(exchange, HttpURLConnection.HTTP_NO_CONTENT);

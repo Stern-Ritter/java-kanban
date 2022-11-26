@@ -1,4 +1,4 @@
-package handler;
+package handlers.tasks;
 
 import com.sun.net.httpserver.HttpExchange;
 import model.Task;
@@ -8,16 +8,16 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.List;
 
-public class RootHandler extends Handler {
-    public static final String PATH = "/tasks";
+public class HistoryHandler extends Handler {
+    public static final String PATH = "/tasks/history";
 
-    public RootHandler(TaskManager taskManager) {
+    public HistoryHandler(TaskManager taskManager) {
         super(taskManager);
     }
 
     @Override
     protected void get(HttpExchange exchange) throws IOException {
-        List<Task> tasks = taskManager.getPrioritizedTasks();
+        List<Task> tasks = taskManager.getHistory();
         String body = gson.toJson(tasks);
         sendResponse(exchange, HttpURLConnection.HTTP_OK, body);
     }
