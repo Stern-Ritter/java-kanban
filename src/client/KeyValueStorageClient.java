@@ -6,7 +6,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
-public class KVTaskClient implements Client {
+public class KeyValueStorageClient implements Client {
     private static final String REGISTER_PATH = "register";
     private static final String SAVE_PATH = "save";
     private static final String LOAD_PATH = "load";
@@ -16,7 +16,7 @@ public class KVTaskClient implements Client {
     private String baseUrl;
     private String token;
 
-    public KVTaskClient(String url) throws IOException, InterruptedException {
+    public KeyValueStorageClient(String url) throws IOException, InterruptedException {
         client = HttpClient.newHttpClient();
         baseUrl = url;
         token = getToken();
