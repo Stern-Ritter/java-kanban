@@ -1,18 +1,16 @@
 package handler;
 
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import model.Subtask;
 import service.TaskManager;
-import utils.ResponseStatus;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
-public class SubtasksHandler extends Handler implements HttpHandler {
+public class SubtasksHandler extends Handler {
     public static final String PATH = "/tasks/subtask";
 
     public SubtasksHandler(TaskManager taskManager) {
@@ -20,54 +18,24 @@ public class SubtasksHandler extends Handler implements HttpHandler {
     }
 
     @Override
-    public void handle(HttpExchange exchange) throws IOException {
-        String method = exchange.getRequestMethod();
-
-        try {
-            switch (method) {
-                case "GET":
-                    get(exchange);
-                    break;
-                case "POST":
-                    post(exchange);
-                    break;
-                case "DELETE":
-                    delete(exchange);
-                    break;
-                default:
-                    throw new UnsupportedOperationException();
-            }
-        } catch (NoSuchElementException ex) {
-            sendResponse(exchange, ResponseStatus.NOT_FOUND.getCode());
-        } catch (IllegalArgumentException ex) {
-            sendResponse(exchange, ResponseStatus.BAD_REQUEST.getCode());
-        } catch (UnsupportedOperationException ex) {
-            sendResponse(exchange, ResponseStatus.METHOD_NOT_ALLOWED.getCode());
-        } catch (Error error) {
-            sendResponse(exchange, ResponseStatus.INTERNAL_SERVER_ERROR.getCode());
-            throw new Error(error);
-        } finally {
-            exchange.close();
-        }
-    }
-
-    private void get(HttpExchange exchange) throws IOException {
+    protected void get(HttpExchange exchange) throws IOException {
         Map<String, String> queryParameters = getQueryParameters(exchange);
         String idParameterValue = queryParameters.get(ID_PARAMETER_NAME);
 
         if (idParameterValue == null) {
             List<Subtask> subtasks = taskManager.getSubtasks();
             String body = gson.toJson(subtasks);
-            sendResponse(exchange, ResponseStatus.OK.getCode(), body);
+            sendResponse(exchange, HttpURLConnection.HTTP_OK, body);
         } else {
             int id = Integer.parseInt(idParameterValue);
             Subtask subtask = Optional.ofNullable(taskManager.getSubtaskById(id)).orElseThrow();
             String body = gson.toJson(subtask);
-            sendResponse(exchange, ResponseStatus.OK.getCode(), body);
+            sendResponse(exchange, HttpURLConnection.HTTP_OK, body);
         }
     }
 
-    private void post(HttpExchange exchange) throws IOException {
+    @Override
+    protected void post(HttpExchange exchange) throws IOException {
         String body = getBody(exchange);
         Subtask subtask = gson.fromJson(body, Subtask.class);
         int id = subtask.getId();
@@ -81,13 +49,14 @@ public class SubtasksHandler extends Handler implements HttpHandler {
         }
 
         if (success) {
-            sendResponse(exchange, ResponseStatus.CREATED.getCode());
+            sendResponse(exchange, HttpURLConnection.HTTP_CREATED);
         } else {
-            sendResponse(exchange, ResponseStatus.BAD_REQUEST.getCode());
+            sendResponse(exchange, HttpURLConnection.HTTP_BAD_REQUEST);
         }
     }
 
-    private void delete(HttpExchange exchange) throws IOException {
+    @Override
+    protected void delete(HttpExchange exchange) throws IOException {
         Map<String, String> queryParameters = getQueryParameters(exchange);
         String idParameterValue = queryParameters.get(ID_PARAMETER_NAME);
 
@@ -98,6 +67,6 @@ public class SubtasksHandler extends Handler implements HttpHandler {
             taskManager.deleteSubtaskById(id);
         }
 
-        sendResponse(exchange, ResponseStatus.NO_CONTENT.getCode());
+        sendResponse(exchange, HttpURLConnection.HTTP_NO_CONTENT);
     }
 }

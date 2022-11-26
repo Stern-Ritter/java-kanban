@@ -3,6 +3,7 @@ package handler;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 import model.Epic;
 import model.Subtask;
 import model.Task;
@@ -15,13 +16,15 @@ import utils.serializer.TaskSerializer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
-public class Handler {
+public abstract class Handler implements HttpHandler {
     private static final int DEFAULT_RESPONSE_LENGTH = 0;
     private static final String QUERY_PARAMS_SEPARATOR = "&";
     private static final String QUERY_VALUES_SEPARATOR = "=";
@@ -39,6 +42,50 @@ public class Handler {
         gsonBuilder.registerTypeAdapter(Subtask.class, new SubtaskSerializer(taskManager));
         gsonBuilder.registerTypeAdapter(Epic.class, new EpicSerializer(taskManager));
         gson = gsonBuilder.create();
+    }
+
+    @Override
+    public void handle(HttpExchange exchange) throws IOException {
+        String method = exchange.getRequestMethod();
+
+        try {
+            switch (method) {
+                case "GET":
+                    get(exchange);
+                    break;
+                case "POST":
+                    post(exchange);
+                    break;
+                case "DELETE":
+                    delete(exchange);
+                    break;
+                default:
+                    throw new UnsupportedOperationException();
+            }
+        } catch (NoSuchElementException ex) {
+            sendResponse(exchange, HttpURLConnection.HTTP_NOT_FOUND);
+        } catch (IllegalArgumentException ex) {
+            sendResponse(exchange, HttpURLConnection.HTTP_BAD_REQUEST);
+        } catch (UnsupportedOperationException ex) {
+            sendResponse(exchange, HttpURLConnection.HTTP_BAD_METHOD);
+        } catch (Error error) {
+            sendResponse(exchange, HttpURLConnection.HTTP_INTERNAL_ERROR);
+            throw new Error(error);
+        } finally {
+            exchange.close();
+        }
+    }
+
+    protected void get(HttpExchange exchange) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    protected void post(HttpExchange exchange) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    protected void delete(HttpExchange exchange) throws IOException {
+        throw new UnsupportedOperationException();
     }
 
     protected Map<String, String> getQueryParameters(HttpExchange exchange) {

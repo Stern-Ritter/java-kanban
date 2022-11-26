@@ -1,16 +1,14 @@
 package handler;
 
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import model.Task;
 import service.TaskManager;
-import utils.ResponseStatus;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.util.List;
-import java.util.NoSuchElementException;
 
-public class RootHandler extends Handler implements HttpHandler {
+public class RootHandler extends Handler {
     public static final String PATH = "/tasks";
 
     public RootHandler(TaskManager taskManager) {
@@ -18,32 +16,9 @@ public class RootHandler extends Handler implements HttpHandler {
     }
 
     @Override
-    public void handle(HttpExchange exchange) throws IOException {
-        String method = exchange.getRequestMethod();
-
-        try {
-            if ("GET".equals(method)) {
-                get(exchange);
-            } else {
-                throw new UnsupportedOperationException();
-            }
-        } catch (NoSuchElementException ex) {
-            sendResponse(exchange, ResponseStatus.NOT_FOUND.getCode());
-        } catch (IllegalArgumentException ex) {
-            sendResponse(exchange, ResponseStatus.BAD_REQUEST.getCode());
-        } catch (UnsupportedOperationException ex) {
-            sendResponse(exchange, ResponseStatus.METHOD_NOT_ALLOWED.getCode());
-        } catch (Error error) {
-            sendResponse(exchange, ResponseStatus.INTERNAL_SERVER_ERROR.getCode());
-            throw new Error(error);
-        } finally {
-            exchange.close();
-        }
-    }
-
-    private void get(HttpExchange exchange) throws IOException {
+    protected void get(HttpExchange exchange) throws IOException {
         List<Task> tasks = taskManager.getPrioritizedTasks();
         String body = gson.toJson(tasks);
-        sendResponse(exchange, ResponseStatus.OK.getCode(), body);
+        sendResponse(exchange, HttpURLConnection.HTTP_OK, body);
     }
 }
