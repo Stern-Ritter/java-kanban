@@ -5,7 +5,6 @@ import client.KVTaskClient;
 import exceptions.HttpClientException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import server.HttpTaskServer;
 import server.KVServer;
 
@@ -35,35 +34,33 @@ public class HttpTaskManagerTest extends FileBackendTaskManagerTest {
     void clearStateBetweenTest() {
         try {
             client.put(TEST_API_KEY, "");
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException | InterruptedException ex) {
             System.out.println("Ошибка удаления всех тестовых данных на сервере перед тестом.");
         }
     }
 
     @Override
-    public FileBackendTaskManager getTaskManagerInstance() {
+    public FileBackendTaskManager getTaskManager() {
         try {
             HistoryManager historyManager = Managers.getDefaultHistory();
             client = new KVTaskClient(TEST_URL);
             return new HTTPTaskManager(historyManager, TEST_API_KEY, client);
-        } catch (IOException | InterruptedException e) {
-            throw new HttpClientException("Ошибка запуска сервера.");
+        } catch (IOException | InterruptedException ex) {
+            throw new HttpClientException("Ошибка запуска сервера.", ex);
         }
     }
 
-    @Disabled
-    void saveStateInFileWithEmptyTasks() {
+    @Override
+    protected TaskManager createTaskManagerInstance() {
+        return taskManager;
     }
 
-    @Disabled
-    void saveStateInFileWithEmptyHistoryLine() {
-    }
-
-    @Disabled
-    void saveStateInFileWithEpicsWithoutSubtasks() {
-    }
-
-    @Disabled
-    void saveStateInFileWithHistoryLine() {
+    @Override
+    protected String getState() {
+        try {
+            return client.load(TEST_API_KEY);
+        } catch (IOException | InterruptedException ex) {
+            throw new RuntimeException(String.format("Ошибка чтения данных с сервера: '%s'.\n", TEST_URL), ex);
+        }
     }
 }

@@ -12,7 +12,14 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertIterableEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 abstract class TaskManagerTest<T extends TaskManager> {
     private final int TASK_DURATION = 30;
@@ -31,11 +38,11 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
     T taskManager;
 
-    abstract T getTaskManagerInstance();
+    abstract T getTaskManager();
 
     @BeforeEach
     void setUpTest() {
-        taskManager = getTaskManagerInstance();
+        taskManager = getTaskManager();
     }
 
     @Test

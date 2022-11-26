@@ -62,7 +62,7 @@ public class FileBackendTaskManagerTest extends TaskManagerTest<FileBackendTaskM
     private Subtask secondEpicFirstSubtask;
 
     @Override
-    public FileBackendTaskManager getTaskManagerInstance() {
+    public FileBackendTaskManager getTaskManager() {
         file = new File(FILE_PATH);
         try {
             if (file.delete()) {
@@ -75,7 +75,11 @@ public class FileBackendTaskManagerTest extends TaskManagerTest<FileBackendTaskM
         return FileBackendTaskManager.loadFromFile(file);
     }
 
-    private String getFileData(File file) {
+    protected TaskManager createTaskManagerInstance() {
+        return FileBackendTaskManager.loadFromFile(file);
+    }
+
+    protected String getState() {
         try {
             String filePath = file.getAbsolutePath();
             return Files.readString(Path.of(filePath));
@@ -96,7 +100,7 @@ public class FileBackendTaskManagerTest extends TaskManagerTest<FileBackendTaskM
     }
 
     @Test
-    void saveStateInFileWithHistoryLine() {
+    void saveStateWithHistoryLine() {
         firstEpic.setSubtasks(List.of(firstEpicFirstSubtask, firstEpicSecondSubtask));
         secondEpic.setSubtasks(List.of(secondEpicFirstSubtask));
 
@@ -124,10 +128,10 @@ public class FileBackendTaskManagerTest extends TaskManagerTest<FileBackendTaskM
                 String.format("7,SUBTASK,Заказать лежак в интернет магазине.,NEW,Выбрать и заказать лежак в интернет магазине.,40,%s,4\r\n", THIRD_SUBTASK_START_TIME_STRING) +
                 "\r\n" +
                 "1,7,2,3,4";
-        String data = getFileData(file);
+        String data = getState();
         assertEquals(expectedData, data, "Saved in file state does not match");
 
-        final TaskManager newTaskManagerInstance = FileBackendTaskManager.loadFromFile(file);
+        final TaskManager newTaskManagerInstance = createTaskManagerInstance();
 
         final List<Task> expectedTasks = List.of(firstTask, secondTask);
         final int expectedTasksCount = expectedTasks.size();
@@ -167,7 +171,7 @@ public class FileBackendTaskManagerTest extends TaskManagerTest<FileBackendTaskM
     }
 
     @Test
-    void saveStateInFileWithEmptyTasks() {
+    void saveStateWithEmptyTasks() {
         firstEpic.setSubtasks(List.of(firstEpicFirstSubtask, firstEpicSecondSubtask));
         secondEpic.setSubtasks(List.of(secondEpicFirstSubtask));
 
@@ -190,11 +194,11 @@ public class FileBackendTaskManagerTest extends TaskManagerTest<FileBackendTaskM
         taskManager.deleteAllEpics();
         taskManager.deleteAllSubtasks();
 
-        final String expectedData = "\r\n1,7,2,3,4";
-        String data = getFileData(file);
+        final String expectedData = "\r\n";
+        String data = getState();
         assertEquals(expectedData, data, "Saved in file state does not match");
 
-        final TaskManager newTaskManagerInstance = FileBackendTaskManager.loadFromFile(file);
+        final TaskManager newTaskManagerInstance = createTaskManagerInstance();
 
         final List<Task> expectedTasks = Collections.emptyList();
         final int expectedTasksCount = 0;
@@ -234,7 +238,7 @@ public class FileBackendTaskManagerTest extends TaskManagerTest<FileBackendTaskM
     }
 
     @Test
-    void saveStateInFileWithEmptyHistoryLine() {
+    void saveStateWithEmptyHistoryLine() {
         firstEpic.setSubtasks(List.of(firstEpicFirstSubtask, firstEpicSecondSubtask));
         secondEpic.setSubtasks(List.of(secondEpicFirstSubtask));
 
@@ -254,10 +258,10 @@ public class FileBackendTaskManagerTest extends TaskManagerTest<FileBackendTaskM
                 String.format("6,SUBTASK,Записаться в зал.,NEW,Оплатить абонемент.,15,%s,3\r\n", SECOND_SUBTASK_START_TIME_STRING) +
                 String.format("7,SUBTASK,Заказать лежак в интернет магазине.,NEW,Выбрать и заказать лежак в интернет магазине.,40,%s,4\r\n", THIRD_SUBTASK_START_TIME_STRING) +
                 "\r\n";
-        String data = getFileData(file);
+        String data = getState();
         assertEquals(expectedData, data, "Saved in file state does not match");
 
-        final TaskManager newTaskManagerInstance = FileBackendTaskManager.loadFromFile(file);
+        final TaskManager newTaskManagerInstance = createTaskManagerInstance();
 
         final List<Task> expectedTasks = List.of(firstTask, secondTask);
         final int expectedTasksCount = expectedTasks.size();
@@ -297,17 +301,17 @@ public class FileBackendTaskManagerTest extends TaskManagerTest<FileBackendTaskM
     }
 
     @Test
-    void saveStateInFileWithEpicsWithoutSubtasks() {
+    void saveStateWithEpicsWithoutSubtasks() {
         taskManager.addEpic(firstEpic);
         taskManager.addEpic(secondEpic);
 
         final String expectedData = String.format("3,EPIC,Начать заниматься спортом.,NEW,Пойти в спортзал.,0,%s,\r\n", FIRST_EPIC_START_TIME_STRING) +
                 String.format("4,EPIC,Купить лежак для кошки.,NEW,Купить лежак для кошки на подоконник.,0,%s,\r\n", SECOND_EPIC_START_TIME_STRING) +
                 "\r\n";
-        String data = getFileData(file);
+        String data = getState();
         assertEquals(expectedData, data, "Saved in file state does not match");
 
-        final TaskManager newTaskManagerInstance = FileBackendTaskManager.loadFromFile(file);
+        final TaskManager newTaskManagerInstance = createTaskManagerInstance();
 
         final List<Task> expectedTasks = Collections.emptyList();
         final int expectedTasksCount = 0;
