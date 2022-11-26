@@ -9,7 +9,10 @@ import model.Task;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import service.*;
+import service.HistoryManager;
+import service.InMemoryTaskManager;
+import service.Managers;
+import service.TaskManager;
 import utils.Status;
 import utils.serializer.EpicSerializer;
 import utils.serializer.LocalDateTimeAdapter;
@@ -17,6 +20,7 @@ import utils.serializer.SubtaskSerializer;
 import utils.serializer.TaskSerializer;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -149,7 +153,7 @@ class HttpTaskServerTest {
         final HttpResponse<String> response = get(URL + "/" + ROOT_PATH + "/" + TASK_PATH);
 
         final int statusCode = response.statusCode();
-        final int expectedStatusCode = 200;
+        final int expectedStatusCode = HttpURLConnection.HTTP_OK;
 
         final String body = response.body();
         final List<Task> tasks = new ArrayList<>(Arrays.asList(gson.fromJson(body, Task[].class)));
@@ -179,7 +183,7 @@ class HttpTaskServerTest {
         final HttpResponse<String> response = get(URL + "/" + ROOT_PATH + "/" + TASK_PATH + "/?id=" + SECOND_TASK_ID);
 
         final int statusCode = response.statusCode();
-        final int expectedStatusCode = 200;
+        final int expectedStatusCode = HttpURLConnection.HTTP_OK;
 
         final String body = response.body();
         final Task savedTask = gson.fromJson(body, Task.class);
@@ -204,7 +208,7 @@ class HttpTaskServerTest {
         final HttpResponse<String> response = get(URL + "/" + ROOT_PATH + "/" + TASK_PATH + "/?id=" + NOT_EXISTING_ID);
 
         final int statusCode = response.statusCode();
-        final int expectedStatusCode = 404;
+        final int expectedStatusCode = HttpURLConnection.HTTP_NOT_FOUND;
 
         final String body = response.body();
 
@@ -227,7 +231,7 @@ class HttpTaskServerTest {
         final HttpResponse<String> response = get(URL + "/" + ROOT_PATH + "/" + TASK_PATH + "/?id=" + INCORRECT_ID);
 
         final int statusCode = response.statusCode();
-        final int expectedStatusCode = 400;
+        final int expectedStatusCode = HttpURLConnection.HTTP_BAD_REQUEST;
 
         final String body = response.body();
 
@@ -249,7 +253,7 @@ class HttpTaskServerTest {
 
         final HttpResponse<String> deleteResponse = delete(URL + "/" + ROOT_PATH + "/" + TASK_PATH + "/?id=" + SECOND_TASK_ID);
         final int deleteStatusCode = deleteResponse.statusCode();
-        final int deleteExpectedStatusCode = 204;
+        final int deleteExpectedStatusCode = HttpURLConnection.HTTP_NO_CONTENT;
 
         assertEquals(deleteExpectedStatusCode, deleteStatusCode, "The response status code  does not match.");
 
@@ -278,7 +282,7 @@ class HttpTaskServerTest {
 
         final HttpResponse<String> deleteResponse = delete(URL + "/" + ROOT_PATH + "/" + TASK_PATH + "/?id=" + NOT_EXISTING_ID);
         final int deleteStatusCode = deleteResponse.statusCode();
-        final int deleteExpectedStatusCode = 204;
+        final int deleteExpectedStatusCode = HttpURLConnection.HTTP_NO_CONTENT;
 
         assertEquals(deleteExpectedStatusCode, deleteStatusCode, "The response status code does not match.");
 
@@ -307,7 +311,7 @@ class HttpTaskServerTest {
 
         final HttpResponse<String> deleteResponse = delete(URL + "/" + ROOT_PATH + "/" + TASK_PATH + "/?id=" + INCORRECT_ID);
         final int deleteStatusCode = deleteResponse.statusCode();
-        final int deleteExpectedStatusCode = 400;
+        final int deleteExpectedStatusCode = HttpURLConnection.HTTP_BAD_REQUEST;
 
         assertEquals(deleteExpectedStatusCode, deleteStatusCode, "The response status code does not match.");
 
@@ -336,7 +340,7 @@ class HttpTaskServerTest {
 
         final HttpResponse<String> deleteResponse = delete(URL + "/" + ROOT_PATH + "/" + TASK_PATH);
         final int statusCode = deleteResponse.statusCode();
-        final int expectedStatusCode = 204;
+        final int expectedStatusCode = HttpURLConnection.HTTP_NO_CONTENT;
 
         assertEquals(expectedStatusCode, statusCode, "The response status code  does not match.");
 
@@ -365,7 +369,7 @@ class HttpTaskServerTest {
 
         final int firstTaskPostStatusCode = firstTaskPostResponse.statusCode();
         final int secondTaskPostStatusCode = secondTaskPostResponse.statusCode();
-        final int expectedStatusCode = 201;
+        final int expectedStatusCode = HttpURLConnection.HTTP_CREATED;
 
         assertEquals(expectedStatusCode, firstTaskPostStatusCode, "The response status code  does not match.");
         assertEquals(expectedStatusCode, secondTaskPostStatusCode, "The response status code  does not match.");
@@ -402,7 +406,7 @@ class HttpTaskServerTest {
 
         final HttpResponse<String> putTaskResponse = post(URL + "/" + ROOT_PATH + "/" + TASK_PATH, updatedSecondTaskJson);
         final int statusCode = putTaskResponse.statusCode();
-        final int expectedStatusCode = 201;
+        final int expectedStatusCode = HttpURLConnection.HTTP_CREATED;
 
         assertEquals(expectedStatusCode, statusCode, "The response status code  does not match.");
 
@@ -429,7 +433,7 @@ class HttpTaskServerTest {
         final HttpResponse<String> response = get(URL + "/" + ROOT_PATH + "/" + SUBTASK_PATH);
 
         final int statusCode = response.statusCode();
-        final int expectedStatusCode = 200;
+        final int expectedStatusCode = HttpURLConnection.HTTP_OK;
 
         final String body = response.body();
         final List<Subtask> subtasks = new ArrayList<>(Arrays.asList(gson.fromJson(body, Subtask[].class)));
@@ -460,7 +464,7 @@ class HttpTaskServerTest {
         final HttpResponse<String> response = get(URL + "/" + ROOT_PATH + "/" + SUBTASK_PATH + "/?id=" + SECOND_SUBTASK_ID);
 
         final int statusCode = response.statusCode();
-        final int expectedStatusCode = 200;
+        final int expectedStatusCode = HttpURLConnection.HTTP_OK;
 
         final String body = response.body();
         final Subtask savedSubtask = gson.fromJson(body, Subtask.class);
@@ -485,7 +489,7 @@ class HttpTaskServerTest {
         final HttpResponse<String> response = get(URL + "/" + ROOT_PATH + "/" + SUBTASK_PATH + "/?id=" + NOT_EXISTING_ID);
 
         final int statusCode = response.statusCode();
-        final int expectedStatusCode = 404;
+        final int expectedStatusCode = HttpURLConnection.HTTP_NOT_FOUND;
 
         final String body = response.body();
 
@@ -508,7 +512,7 @@ class HttpTaskServerTest {
         final HttpResponse<String> response = get(URL + "/" + ROOT_PATH + "/" + SUBTASK_PATH + "/?id=" + INCORRECT_ID);
 
         final int statusCode = response.statusCode();
-        final int expectedStatusCode = 400;
+        final int expectedStatusCode = HttpURLConnection.HTTP_BAD_REQUEST;
 
         final String body = response.body();
 
@@ -530,7 +534,7 @@ class HttpTaskServerTest {
 
         final HttpResponse<String> deleteResponse = delete(URL + "/" + ROOT_PATH + "/" + SUBTASK_PATH + "/?id=" + SECOND_SUBTASK_ID);
         final int deleteStatusCode = deleteResponse.statusCode();
-        final int deleteExpectedStatusCode = 204;
+        final int deleteExpectedStatusCode = HttpURLConnection.HTTP_NO_CONTENT;
 
         assertEquals(deleteExpectedStatusCode, deleteStatusCode, "The response status code does not match.");
 
@@ -559,7 +563,7 @@ class HttpTaskServerTest {
 
         final HttpResponse<String> deleteResponse = delete(URL + "/" + ROOT_PATH + "/" + SUBTASK_PATH + "/?id=" + NOT_EXISTING_ID);
         final int deleteStatusCode = deleteResponse.statusCode();
-        final int deleteExpectedStatusCode = 204;
+        final int deleteExpectedStatusCode = HttpURLConnection.HTTP_NO_CONTENT;
 
         assertEquals(deleteExpectedStatusCode, deleteStatusCode, "The response status code does not match.");
 
@@ -588,7 +592,7 @@ class HttpTaskServerTest {
 
         final HttpResponse<String> deleteResponse = delete(URL + "/" + ROOT_PATH + "/" + SUBTASK_PATH + "/?id=" + INCORRECT_ID);
         final int deleteStatusCode = deleteResponse.statusCode();
-        final int deleteExpectedStatusCode = 400;
+        final int deleteExpectedStatusCode = HttpURLConnection.HTTP_BAD_REQUEST;
 
         assertEquals(deleteExpectedStatusCode, deleteStatusCode, "The response status code does not match.");
 
@@ -617,7 +621,7 @@ class HttpTaskServerTest {
 
         final HttpResponse<String> deleteResponse = delete(URL + "/" + ROOT_PATH + "/" + SUBTASK_PATH);
         final int statusCode = deleteResponse.statusCode();
-        final int expectedStatusCode = 204;
+        final int expectedStatusCode = HttpURLConnection.HTTP_NO_CONTENT;
 
         assertEquals(expectedStatusCode, statusCode, "The response status code  does not match.");
 
@@ -646,7 +650,7 @@ class HttpTaskServerTest {
 
         final int firstSubtaskPostStatusCode = firstSubtaskPostResponse.statusCode();
         final int secondSubtaskPostStatusCode = secondSubtaskPostResponse.statusCode();
-        final int expectedStatusCode = 201;
+        final int expectedStatusCode = HttpURLConnection.HTTP_CREATED;
 
         assertEquals(expectedStatusCode, firstSubtaskPostStatusCode, "The response status code  does not match.");
         assertEquals(expectedStatusCode, secondSubtaskPostStatusCode, "The response status code  does not match.");
@@ -683,7 +687,7 @@ class HttpTaskServerTest {
 
         final HttpResponse<String> putTaskResponse = post(URL + "/" + ROOT_PATH + "/" + SUBTASK_PATH, updatedSecondSubtaskJson);
         final int statusCode = putTaskResponse.statusCode();
-        final int expectedStatusCode = 201;
+        final int expectedStatusCode = HttpURLConnection.HTTP_CREATED;
 
         assertEquals(expectedStatusCode, statusCode, "The response status code does not match.");
 
@@ -714,7 +718,7 @@ class HttpTaskServerTest {
         final HttpResponse<String> response = get(URL + "/" + ROOT_PATH + "/" + EPIC_PATH);
 
         final int statusCode = response.statusCode();
-        final int expectedStatusCode = 200;
+        final int expectedStatusCode = HttpURLConnection.HTTP_OK;
 
         final String body = response.body();
         final List<Epic> epics = new ArrayList<>(Arrays.asList(gson.fromJson(body, Epic[].class)));
@@ -749,7 +753,7 @@ class HttpTaskServerTest {
         final HttpResponse<String> response = get(URL + "/" + ROOT_PATH + "/" + EPIC_PATH + "/?id=" + SECOND_EPIC_ID);
 
         final int statusCode = response.statusCode();
-        final int expectedStatusCode = 200;
+        final int expectedStatusCode = HttpURLConnection.HTTP_OK;
 
         final String body = response.body();
         final Epic savedEpic = gson.fromJson(body, Epic.class);
@@ -778,7 +782,7 @@ class HttpTaskServerTest {
         final HttpResponse<String> response = get(URL + "/" + ROOT_PATH + "/" + EPIC_PATH + "/?id=" + NOT_EXISTING_ID);
 
         final int statusCode = response.statusCode();
-        final int expectedStatusCode = 404;
+        final int expectedStatusCode = HttpURLConnection.HTTP_NOT_FOUND;
 
         final String body = response.body();
 
@@ -805,7 +809,7 @@ class HttpTaskServerTest {
         final HttpResponse<String> response = get(URL + "/" + ROOT_PATH + "/" + EPIC_PATH + "/?id=" + INCORRECT_ID);
 
         final int statusCode = response.statusCode();
-        final int expectedStatusCode = 400;
+        final int expectedStatusCode = HttpURLConnection.HTTP_BAD_REQUEST;
 
         final String body = response.body();
 
@@ -831,7 +835,7 @@ class HttpTaskServerTest {
 
         final HttpResponse<String> deleteResponse = delete(URL + "/" + ROOT_PATH + "/" + EPIC_PATH + "/?id=" + SECOND_EPIC_ID);
         final int deleteStatusCode = deleteResponse.statusCode();
-        final int deleteExpectedStatusCode = 204;
+        final int deleteExpectedStatusCode = HttpURLConnection.HTTP_NO_CONTENT;
 
         assertEquals(deleteExpectedStatusCode, deleteStatusCode, "The response status code does not match.");
 
@@ -864,7 +868,7 @@ class HttpTaskServerTest {
 
         final HttpResponse<String> deleteResponse = delete(URL + "/" + ROOT_PATH + "/" + EPIC_PATH + "/?id=" + NOT_EXISTING_ID);
         final int deleteStatusCode = deleteResponse.statusCode();
-        final int deleteExpectedStatusCode = 204;
+        final int deleteExpectedStatusCode = HttpURLConnection.HTTP_NO_CONTENT;
 
         assertEquals(deleteExpectedStatusCode, deleteStatusCode, "The response status code does not match.");
 
@@ -897,7 +901,7 @@ class HttpTaskServerTest {
 
         final HttpResponse<String> deleteResponse = delete(URL + "/" + ROOT_PATH + "/" + EPIC_PATH + "/?id=" + INCORRECT_ID);
         final int deleteStatusCode = deleteResponse.statusCode();
-        final int deleteExpectedStatusCode = 400;
+        final int deleteExpectedStatusCode = HttpURLConnection.HTTP_BAD_REQUEST;
 
         assertEquals(deleteExpectedStatusCode, deleteStatusCode, "The response status code does not match.");
 
@@ -930,7 +934,7 @@ class HttpTaskServerTest {
 
         final HttpResponse<String> deleteResponse = delete(URL + "/" + ROOT_PATH + "/" + EPIC_PATH);
         final int statusCode = deleteResponse.statusCode();
-        final int expectedStatusCode = 204;
+        final int expectedStatusCode = HttpURLConnection.HTTP_NO_CONTENT;
 
         assertEquals(expectedStatusCode, statusCode, "The response status code  does not match.");
 
@@ -963,7 +967,7 @@ class HttpTaskServerTest {
 
         final int firstEpicPostStatusCode = firstEpicPostResponse.statusCode();
         final int secondEpicPostStatusCode = secondEpicPostResponse.statusCode();
-        final int expectedStatusCode = 201;
+        final int expectedStatusCode = HttpURLConnection.HTTP_CREATED;
 
         assertEquals(expectedStatusCode, firstEpicPostStatusCode, "The response status code does not match.");
         assertEquals(expectedStatusCode, secondEpicPostStatusCode, "The response status code does not match.");
@@ -1003,7 +1007,7 @@ class HttpTaskServerTest {
 
         final HttpResponse<String> putEpicResponse = post(URL + "/" + ROOT_PATH + "/" + EPIC_PATH, updatedSecondEpicJson);
         final int statusCode = putEpicResponse.statusCode();
-        final int expectedStatusCode = 201;
+        final int expectedStatusCode = HttpURLConnection.HTTP_CREATED;
 
         assertEquals(expectedStatusCode, statusCode, "The response status code does not match.");
 
@@ -1034,7 +1038,7 @@ class HttpTaskServerTest {
         final HttpResponse<String> response = get(URL + "/" + ROOT_PATH + "/" + SUBTASK_PATH + "/" + EPIC_PATH + "/?id=" + FIRST_EPIC_ID);
 
         final int statusCode = response.statusCode();
-        final int expectedStatusCode = 200;
+        final int expectedStatusCode = HttpURLConnection.HTTP_OK;
 
         assertEquals(expectedStatusCode, statusCode, "The response status code does not match.");
 
@@ -1067,7 +1071,7 @@ class HttpTaskServerTest {
         final HttpResponse<String> response = get(URL + "/" + ROOT_PATH + "/" + SUBTASK_PATH + "/" + EPIC_PATH + "/?id=" + NOT_EXISTING_ID);
 
         final int statusCode = response.statusCode();
-        final int expectedStatusCode = 404;
+        final int expectedStatusCode = HttpURLConnection.HTTP_NOT_FOUND;
 
         assertEquals(expectedStatusCode, statusCode, "The response status code does not match.");
 
@@ -1096,7 +1100,7 @@ class HttpTaskServerTest {
         final HttpResponse<String> response = get(URL + "/" + ROOT_PATH + "/" + SUBTASK_PATH + "/" + EPIC_PATH + "/?id=" + INCORRECT_ID);
 
         final int statusCode = response.statusCode();
-        final int expectedStatusCode = 400;
+        final int expectedStatusCode = HttpURLConnection.HTTP_BAD_REQUEST;
 
         assertEquals(expectedStatusCode, statusCode, "The response status code does not match.");
 
@@ -1130,7 +1134,7 @@ class HttpTaskServerTest {
         final HttpResponse<String> response = get(URL + "/" + ROOT_PATH);
 
         final int statusCode = response.statusCode();
-        final int expectedStatusCode = 200;
+        final int expectedStatusCode = HttpURLConnection.HTTP_OK;
 
         final String body = response.body();
         final List<Task> tasks = new ArrayList<>(Arrays.asList(gson.fromJson(body, Task[].class)));
@@ -1174,7 +1178,7 @@ class HttpTaskServerTest {
         final HttpResponse<String> response = get(URL + "/" + ROOT_PATH + "/" + HISTORY_PATH);
 
         final int statusCode = response.statusCode();
-        final int expectedStatusCode = 200;
+        final int expectedStatusCode = HttpURLConnection.HTTP_OK;
 
         final String body = response.body();
         final List<Task> tasks = new ArrayList<>(Arrays.asList(gson.fromJson(body, Task[].class)));
