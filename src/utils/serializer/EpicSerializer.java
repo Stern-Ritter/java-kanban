@@ -5,6 +5,7 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import exceptions.BadRequestException;
 import model.Epic;
 import model.Subtask;
 import service.TaskManager;
@@ -39,7 +40,7 @@ public class EpicSerializer implements JsonDeserializer<Epic> {
             epic.setSubtasks(subtasks);
             return epic;
         } catch (NullPointerException ex) {
-            throw new IllegalArgumentException(ex);
+            throw new BadRequestException("Некорректный формат данных в теле запроса.", ex);
         }
     }
 }

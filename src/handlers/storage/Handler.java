@@ -2,6 +2,9 @@ package handlers.storage;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import exceptions.BadMethodException;
+import exceptions.BadRequestException;
+import exceptions.NotFoundException;
 import exceptions.UnauthorizedException;
 
 import java.io.IOException;
@@ -9,7 +12,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.util.Map;
-import java.util.NoSuchElementException;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -40,11 +42,11 @@ public abstract class Handler implements HttpHandler {
             }
         } catch (UnauthorizedException ex) {
             sendResponse(exchange, HttpURLConnection.HTTP_UNAUTHORIZED);
-        } catch (NoSuchElementException ex) {
+        } catch (NotFoundException ex) {
             sendResponse(exchange, HttpURLConnection.HTTP_NOT_FOUND);
-        } catch (IllegalArgumentException ex) {
+        } catch (BadRequestException ex) {
             sendResponse(exchange, HttpURLConnection.HTTP_BAD_REQUEST);
-        } catch (UnsupportedOperationException ex) {
+        } catch (BadMethodException ex) {
             sendResponse(exchange, HttpURLConnection.HTTP_BAD_METHOD);
         } catch (Error error) {
             sendResponse(exchange, HttpURLConnection.HTTP_INTERNAL_ERROR);
@@ -55,11 +57,11 @@ public abstract class Handler implements HttpHandler {
     }
 
     protected void get(HttpExchange exchange) throws IOException {
-        throw new UnsupportedOperationException();
+        throw new BadMethodException();
     }
 
     protected void post(HttpExchange exchange) throws IOException {
-        throw new UnsupportedOperationException();
+        throw new BadMethodException();
     }
 
     protected String getBody(HttpExchange exchange) throws IOException {

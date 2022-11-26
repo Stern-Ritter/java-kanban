@@ -2,7 +2,7 @@ package service;
 
 import client.Client;
 import client.KeyValueStorageClient;
-import exceptions.HttpClientException;
+import exceptions.ServerException;
 import model.Task;
 import utils.HistoryManagerParser;
 import utils.TaskParser;
@@ -42,7 +42,7 @@ public class HTTPTaskManager extends FileBackendTaskManager {
         try {
             client.put(apiKey, state.toString());
         } catch (IOException | InterruptedException ex) {
-            throw new HttpClientException("Ошибка сохранения данных на сервер.", ex);
+            throw new ServerException("Ошибка сохранения данных на сервер.", ex);
         }
     }
 
@@ -61,7 +61,7 @@ public class HTTPTaskManager extends FileBackendTaskManager {
 
             return tasksManager;
         } catch (IOException | InterruptedException | IndexOutOfBoundsException | IllegalArgumentException ex) {
-            throw new HttpClientException("Ошибка чтения данных задач и истории просмотра c сервера.", ex);
+            throw new ServerException("Ошибка чтения данных задач и истории просмотра c сервера.", ex);
         }
     }
 }

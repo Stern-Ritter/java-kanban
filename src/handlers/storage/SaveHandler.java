@@ -1,6 +1,7 @@
 package handlers.storage;
 
 import com.sun.net.httpserver.HttpExchange;
+import exceptions.BadRequestException;
 import exceptions.UnauthorizedException;
 
 import java.io.IOException;
@@ -22,7 +23,7 @@ public class SaveHandler extends Handler {
         String value = getBody(exchange);
 
         if (key.isEmpty() || value.isEmpty()) {
-            throw new IllegalArgumentException();
+            throw new BadRequestException();
         }
 
         storage.put(key, value);

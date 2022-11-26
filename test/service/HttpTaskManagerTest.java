@@ -2,7 +2,8 @@ package service;
 
 import client.Client;
 import client.KeyValueStorageClient;
-import exceptions.HttpClientException;
+import exceptions.HttpException;
+import exceptions.ServerException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import server.HttpTaskServer;
@@ -21,14 +22,14 @@ public class HttpTaskManagerTest extends FileBackendTaskManagerTest {
     static void startServer() {
         try {
             new KeyValueStorage(KEY_VALUE_STORAGE_PORT).start();
-        } catch (IOException | HttpClientException ex) {
-            System.out.println("Не удалось запустить KVServer.");
+        } catch (IOException | ServerException ex) {
+            System.out.printf("Не удалось запустить KeyValueStorage: %s.\n", ex.getMessage());
         }
 
         try {
             new HttpTaskServer(HTTP_TASK_SERVER_PORT).start();
-        } catch (IOException ex) {
-            System.out.println("Не удалось запустить HttpTaskServer.");
+        } catch (IOException | ServerException ex) {
+            System.out.printf("Не удалось запустить HttpTaskServer: %s.\n", ex.getMessage());
         }
     }
 
@@ -48,7 +49,7 @@ public class HttpTaskManagerTest extends FileBackendTaskManagerTest {
             client = new KeyValueStorageClient(TEST_URL);
             return new HTTPTaskManager(historyManager, TEST_API_KEY, client);
         } catch (IOException | InterruptedException ex) {
-            throw new HttpClientException("Ошибка запуска сервера.", ex);
+            throw new HttpException("Ошибка запуска сервера.", ex);
         }
     }
 

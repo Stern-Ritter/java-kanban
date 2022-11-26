@@ -1,6 +1,8 @@
 package handlers.tasks;
 
 import com.sun.net.httpserver.HttpExchange;
+import exceptions.BadRequestException;
+import exceptions.NotFoundException;
 import model.Epic;
 import service.TaskManager;
 
@@ -8,7 +10,6 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public class EpicsHandler extends Handler {
     public static final String PATH = "/tasks/epic";
@@ -27,8 +28,13 @@ public class EpicsHandler extends Handler {
             String body = gson.toJson(epics);
             sendResponse(exchange, HttpURLConnection.HTTP_OK, body);
         } else {
-            int id = Integer.parseInt(idParameterValue);
-            Epic epic = Optional.ofNullable(taskManager.getEpicById(id)).orElseThrow();
+            int id = parseId(idParameterValue);
+            Epic epic = taskManager.getEpicById(id);
+
+            if (epic == null) {
+                throw new NotFoundException();
+            }
+
             String body = gson.toJson(epic);
             sendResponse(exchange, HttpURLConnection.HTTP_OK, body);
         }
@@ -48,11 +54,11 @@ public class EpicsHandler extends Handler {
             success = taskManager.addEpic(epic);
         }
 
-        if (success) {
-            sendResponse(exchange, HttpURLConnection.HTTP_CREATED);
-        } else {
-            sendResponse(exchange, HttpURLConnection.HTTP_BAD_REQUEST);
+        if (!success) {
+            throw new BadRequestException();
         }
+
+        sendResponse(exchange, HttpURLConnection.HTTP_CREATED);
     }
 
     @Override
@@ -63,7 +69,7 @@ public class EpicsHandler extends Handler {
         if (idParameterValue == null) {
             taskManager.deleteAllEpics();
         } else {
-            int id = Integer.parseInt(idParameterValue);
+            int id = parseId(idParameterValue);
             taskManager.deleteEpicById(id);
         }
 

@@ -1,4 +1,4 @@
-import exceptions.HttpClientException;
+import exceptions.ServerException;
 import server.HttpTaskServer;
 import server.KeyValueStorage;
 
@@ -8,14 +8,14 @@ public class Main {
     public static void main(String[] args) {
         try {
             new KeyValueStorage(8078).start();
-        } catch (IOException | HttpClientException ex) {
-            System.out.println("Не удалось запустить KVServer.");
+        } catch (IOException | ServerException ex) {
+            System.out.printf("Не удалось запустить KeyValueStorage: %s.\n", ex.getMessage());
         }
 
         try {
             new HttpTaskServer(8080).start();
-        } catch (IOException ex) {
-            System.out.println("Не удалось запустить HttpTaskServer.");
+        } catch (IOException | ServerException ex) {
+            System.out.printf("Не удалось запустить HttpTaskServer: %s.\n", ex.getMessage());
         }
     }
 }

@@ -5,6 +5,7 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import exceptions.BadRequestException;
 import model.Subtask;
 import model.Task;
 import service.TaskManager;
@@ -39,7 +40,7 @@ public class TaskSerializer implements JsonDeserializer<Task> {
                 return new Subtask(id, name, description, status, duration, startTime, epicId);
             }
         } catch (NullPointerException ex) {
-            throw new IllegalArgumentException(ex);
+            throw new BadRequestException("Некорректный формат данных в теле запроса.", ex);
         }
     }
 }

@@ -2,7 +2,8 @@ package server;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import exceptions.HttpClientException;
+import exceptions.HttpException;
+import exceptions.ServerException;
 import model.Epic;
 import model.Subtask;
 import model.Task;
@@ -108,15 +109,15 @@ class HttpTaskServerTest {
         try {
             keyValueStorage = new KeyValueStorage(KEY_VALUE_STORAGE_PORT);
             keyValueStorage.start();
-        } catch (IOException | HttpClientException ex) {
-            System.out.println("Не удалось запустить KVServer.");
+        } catch (IOException | ServerException ex) {
+            System.out.printf("Не удалось запустить KeyValueStorage: %s.\n", ex.getMessage());
         }
 
         try {
             taskServer = new HttpTaskServer(HTTP_TASK_SERVER_PORT);
             taskServer.start();
-        } catch (IOException ex) {
-            System.out.println("Не удалось запустить HttpTaskServer.");
+        } catch (IOException | ServerException ex) {
+            System.out.printf("Не удалось запустить HttpTaskServer: %s.\n", ex.getMessage());
         }
 
         HistoryManager historyManager = Managers.getDefaultHistory();

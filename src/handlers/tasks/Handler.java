@@ -4,6 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import exceptions.BadMethodException;
+import exceptions.BadRequestException;
+import exceptions.NotFoundException;
 import model.Epic;
 import model.Subtask;
 import model.Task;
@@ -22,7 +25,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.NoSuchElementException;
 
 public abstract class Handler implements HttpHandler {
     private static final int DEFAULT_RESPONSE_LENGTH = 0;
@@ -62,11 +64,11 @@ public abstract class Handler implements HttpHandler {
                 default:
                     throw new UnsupportedOperationException();
             }
-        } catch (NoSuchElementException ex) {
+        } catch (NotFoundException ex) {
             sendResponse(exchange, HttpURLConnection.HTTP_NOT_FOUND);
-        } catch (IllegalArgumentException ex) {
+        } catch (BadRequestException ex) {
             sendResponse(exchange, HttpURLConnection.HTTP_BAD_REQUEST);
-        } catch (UnsupportedOperationException ex) {
+        } catch (BadMethodException ex) {
             sendResponse(exchange, HttpURLConnection.HTTP_BAD_METHOD);
         } catch (Error error) {
             sendResponse(exchange, HttpURLConnection.HTTP_INTERNAL_ERROR);
@@ -77,15 +79,15 @@ public abstract class Handler implements HttpHandler {
     }
 
     protected void get(HttpExchange exchange) throws IOException {
-        throw new UnsupportedOperationException();
+        throw new BadMethodException();
     }
 
     protected void post(HttpExchange exchange) throws IOException {
-        throw new UnsupportedOperationException();
+        throw new BadMethodException();
     }
 
     protected void delete(HttpExchange exchange) throws IOException {
-        throw new UnsupportedOperationException();
+        throw new BadMethodException();
     }
 
     protected Map<String, String> getQueryParameters(HttpExchange exchange) {
@@ -116,5 +118,13 @@ public abstract class Handler implements HttpHandler {
 
     protected void sendResponse(HttpExchange exchange, int status) throws IOException {
         exchange.sendResponseHeaders(status, DEFAULT_RESPONSE_LENGTH);
+    }
+
+    protected int parseId(String id) {
+        try {
+            return Integer.parseInt(id);
+        } catch (NumberFormatException ex) {
+            throw new BadRequestException("Некорректное значение id.", ex);
+        }
     }
 }

@@ -1,6 +1,8 @@
 package handlers.tasks;
 
 import com.sun.net.httpserver.HttpExchange;
+import exceptions.BadRequestException;
+import exceptions.NotFoundException;
 import model.Task;
 import service.TaskManager;
 
@@ -8,7 +10,6 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public class TasksHandler extends Handler {
     public static final String PATH = "/tasks/task";
@@ -27,8 +28,13 @@ public class TasksHandler extends Handler {
             String body = gson.toJson(tasks);
             sendResponse(exchange, HttpURLConnection.HTTP_OK, body);
         } else {
-            int id = Integer.parseInt(idParameterValue);
-            Task task = Optional.ofNullable(taskManager.getTaskById(id)).orElseThrow();
+            int id = parseId(idParameterValue);
+            Task task = taskManager.getTaskById(id);
+
+            if (task == null) {
+                throw new NotFoundException();
+            }
+
             String body = gson.toJson(task);
             sendResponse(exchange, HttpURLConnection.HTTP_OK, body);
         }
@@ -48,11 +54,11 @@ public class TasksHandler extends Handler {
             success = taskManager.addTask(task);
         }
 
-        if (success) {
-            sendResponse(exchange, HttpURLConnection.HTTP_CREATED);
-        } else {
-            sendResponse(exchange, HttpURLConnection.HTTP_BAD_REQUEST);
+        if (!success) {
+            throw new BadRequestException();
         }
+
+        sendResponse(exchange, HttpURLConnection.HTTP_CREATED);
     }
 
     @Override
@@ -63,7 +69,7 @@ public class TasksHandler extends Handler {
         if (idParameterValue == null) {
             taskManager.deleteAllTasks();
         } else {
-            int id = Integer.parseInt(idParameterValue);
+            int id = parseId(idParameterValue);
             taskManager.deleteTaskById(id);
         }
 

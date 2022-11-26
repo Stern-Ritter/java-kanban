@@ -1,6 +1,8 @@
 package handlers.tasks;
 
 import com.sun.net.httpserver.HttpExchange;
+import exceptions.BadRequestException;
+import exceptions.NotFoundException;
 import model.Subtask;
 import service.TaskManager;
 
@@ -8,7 +10,6 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public class SubtasksHandler extends Handler {
     public static final String PATH = "/tasks/subtask";
@@ -27,8 +28,13 @@ public class SubtasksHandler extends Handler {
             String body = gson.toJson(subtasks);
             sendResponse(exchange, HttpURLConnection.HTTP_OK, body);
         } else {
-            int id = Integer.parseInt(idParameterValue);
-            Subtask subtask = Optional.ofNullable(taskManager.getSubtaskById(id)).orElseThrow();
+            int id = parseId(idParameterValue);
+            Subtask subtask = taskManager.getSubtaskById(id);
+
+            if (subtask == null) {
+                throw new NotFoundException();
+            }
+
             String body = gson.toJson(subtask);
             sendResponse(exchange, HttpURLConnection.HTTP_OK, body);
         }
@@ -48,11 +54,11 @@ public class SubtasksHandler extends Handler {
             success = taskManager.addSubtask(subtask);
         }
 
-        if (success) {
-            sendResponse(exchange, HttpURLConnection.HTTP_CREATED);
-        } else {
-            sendResponse(exchange, HttpURLConnection.HTTP_BAD_REQUEST);
+        if (!success) {
+            throw new BadRequestException();
         }
+
+        sendResponse(exchange, HttpURLConnection.HTTP_CREATED);
     }
 
     @Override
@@ -63,7 +69,7 @@ public class SubtasksHandler extends Handler {
         if (idParameterValue == null) {
             taskManager.deleteAllSubtasks();
         } else {
-            int id = Integer.parseInt(idParameterValue);
+            int id = parseId(idParameterValue);
             taskManager.deleteSubtaskById(id);
         }
 
